@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UXR AI Disclosure Drafting Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Updated font link to include Alexandria, Lexend (multiple weights), and Permanent Marker -->
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700&family=Lexend:wght@200;500&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Modern Professional Blue -->
+    <!-- Application Structure Plan: A single-page application designed as a guided, conversational workflow. The user first selects an audience (Participant, Internal, External). Based on this choice, a series of questions appears sequentially in a chat-like interface on the left. As the user answers, a disclosure statement is dynamically drafted in a panel on the right. This structure turns the static protocols from the source report into an interactive, task-oriented tool, making it easy for researchers to generate compliant text without needing to memorize the framework. The user flow is linear and focused: Select -> Answer -> Draft -> Copy. -->
+    <!-- Visualization & Content Choices: The primary "visualization" is the dynamically generated text itself. The core interaction is a conversational form using radio buttons and text inputs. This choice is based on the goal of guiding a user through a drafting process. No charts are needed. The content for the questions and the resulting text snippets are drawn directly from the protocols outlined in Part IV of the source report, ensuring the output is grounded in the established framework. The tool operationalizes the report's findings. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        /* --- CUSTOMIZE YOUR STYLES HERE --- */
+
+        /* Updated font rules */
+        h1 {
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        h2, h3 {
+            font-family: 'Alexandria', sans-serif;
+            font-weight: 700; /* Extra Bold */
+        }
+
+        body { 
+            font-family: 'Lexend', sans-serif; /* <-- Changed to Lexend */
+            font-weight: 200; /* <-- Set to Extra Light */
+            background-color: #F9FAFB;      
+            color: #1F2937;                 
+        }
+        
+        /* Added this rule for the audience button titles */
+        .audience-btn strong {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 500; /* Medium */
+        }
+
+        .card { 
+            background-color: #FFFFFF; 
+            border: 1px solid #E5E7EB; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); 
+        }
+
+        /* Primary Button Style */
+        .btn { 
+            background-color: #F5BD0E; /* <-- Change this to your primary button color */
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem; 
+            font-weight: 600; 
+            transition: background-color 0.2s; 
+        }
+        .btn:hover:not(:disabled) { 
+            background-color: #fac114; /* <-- Change this to a darker shade for hover */
+        }
+
+        /* Secondary Button Style */
+        .btn-secondary { 
+            background-color: #D8D8D8; 
+            color: #374151; 
+        }
+        .btn-secondary:hover:not(:disabled) { 
+            background-color: #D8D8D8; 
+        }
+
+        /* Disabled button style */
+        .btn:disabled {
+            background-color: #E5E7EB;
+            color: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        /* Selected Input Style */
+        .input-label.selected { 
+            background-color: #fac114; /* <-- Change this to a light accent color */
+            border-color: #fac114;     /* <-- Change this to your primary accent color */
+        }
+        
+        /* Fix for Squarespace iframe scrolling */
+        #disclosure-tool-wrapper {
+            min-height: 950px; /* Adjust this value as needed */
+        }
+
+        /* Fix for Squarespace column layout issues */
+        .main-grid-layout {
+            display: grid;
+            gap: 3rem; /* Corresponds to Tailwind's gap-12 */
+        }
+
+        @media (min-width: 1024px) { /* Corresponds to Tailwind's lg: breakpoint */
+            .main-grid-layout {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* --- End of Customization Area --- */
+
+        .question-block { display: none; }
+        .question-block.active { display: block; }
+        #draftOutput { white-space: pre-wrap; }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- This new wrapper div isolates the tool from Squarespace's layout styles -->
+    <div id="disclosure-tool-wrapper" style="width: 100%;">
+        <div class="container mx-auto px-4 md:px-8 py-8">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">UXR AI Disclosure Drafter</h1>
+                <p class="text-lg md:text-xl text-gray-600">A tool to generate disclosure statements based on our established framework.</p>
+            </header>
+
+            <div class="main-grid-layout">
+                <!-- Left Panel: Conversational Form -->
+                <div class="card p-6 md:p-8 flex flex-col">
+                    <div id="formContainer" class="flex-grow">
+                        <!-- Step 1: Audience Selection -->
+                        <div id="audience-step" class="question-block active">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-1">Let's Get Started</h3>
+                            <p class="text-gray-700 mb-6">Who is the audience for this disclosure?</p>
+                            <div class="space-y-3">
+                                <button data-audience="participant" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                                    <strong class="text-gray-800">Research Participants</strong>
+                                    <p class="text-sm text-gray-600">For consent forms and study information sheets.</p>
+                                </button>
+                                <button data-audience="internal" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                                    <strong class="text-gray-800">Internal Stakeholders</strong>
+                                    <p class="text-sm text-gray-600">For research reports, presentations, and wikis.</p>
+                                </button>
+                                 <button data-audience="external" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                                    <strong class="text-gray-800">External Stakeholders</strong>
+                                    <p class="text-sm text-gray-600">For public reports, case studies, or academic papers.</p>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Dynamic Questions will be injected here -->
+                    </div>
+                     <div id="form-navigation" class="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center" style="display: none;">
+                        <button id="prevBtn" class="btn btn-secondary">Previous</button>
+                        <span id="step-counter" class="text-sm font-medium text-gray-500"></span>
+                        <button id="nextBtn" class="btn">Next</button>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Draft Preview -->
+                <div class="sticky top-8">
+                     <div class="card p-6 md:p-8 flex flex-col">
+                        <div class="flex-grow">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-4">Generated Draft</h3>
+                            <p class="text-gray-700 mb-6">Your disclosure statement will be drafted here in real-time. Review and copy the final text.</p>
+                            <div id="draft-container" class="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[200px]">
+                                <p id="draftOutput" class="text-gray-700">Please select an audience to begin.</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center">
+                             <div>
+                                <button id="copyBtn" class="btn" disabled>Copy Text</button>
+                                <span id="copy-feedback" class="ml-4 text-sm font-medium text-green-600 opacity-0 transition-opacity">Copied!</span>
+                             </div>
+                             <button id="resetBtn" class="btn btn-secondary">Start Over</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const formContainer = document.getElementById('formContainer');
+        const draftOutput = document.getElementById('draftOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const copyFeedback = document.getElementById('copy-feedback');
+        const formNav = document.getElementById('form-navigation');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const stepCounter = document.getElementById('step-counter');
+        
+        const initialFormHTML = formContainer.innerHTML;
+
+        let state = {};
+        let questions = [];
+        let currentQuestionIndex = 0;
+
+        const questionLibrary = {
+            participant: [
+                { id: 'purpose', text: 'How will AI be used in relation to the participant?', type: 'radio', options: [
+                    { value: 'analysis', label: 'To analyze participant data (e.g., transcribe interviews, identify themes).' },
+                    { value: 'interaction', label: 'To interact directly with the participant (e.g., as a chatbot interviewer).' },
+                    { value: 'both', label: 'Both to interact with and analyze participant data.' },
+                ]},
+                { id: 'training', text: 'Will participant data be used to train AI models?', type: 'radio', options: [
+                    { value: 'yes', label: 'Yes, data will be used for training.' },
+                    { value: 'no', label: 'No, data will NOT be used for training.' },
+                ]},
+                { id: 'optout', text: 'If data is used for training, will participants have an opt-out?', condition: (s) => s.training === 'yes', type: 'radio', options: [
+                    { value: 'yes', label: 'Yes, a clear opt-out will be provided.' },
+                    { value: 'no', label: 'No, an opt-out is not feasible.' },
+                ]},
+            ],
+            internal: [
+                { id: 'tools', text: 'List the primary AI tool(s) and version(s) used.', type: 'text', placeholder: 'e.g., ChatGPT-4o, Marvin v2.1' },
+                { id: 'task', text: 'What specific research task was the AI used for?', type: 'checkbox', options: [
+                    { value: 'screening', label: 'Screening and segmenting participant candidates.' },
+                    { value: 'discussion_guide', label: 'Generating draft discussion guides or survey questions.' },
+                    { value: 'transcription', label: 'Transcribing interviews or audio recordings.' },
+                    { value: 'behavioral_analysis', label: 'Analyzing behavioral data from recordings (e.g., clicks, navigation).' },
+                    { value: 'sentiment_analysis', label: 'Analyzing sentiment or emotion from text, audio, or video.' },
+                    { value: 'theming', label: 'Generating initial thematic codes from qualitative data.' },
+                    { value: 'summarization', label: 'Summarizing open-ended survey responses or documents.' },
+                    { value: 'insight_synthesis', label: 'Synthesizing data from multiple sources to identify patterns.' },
+                    { value: 'highlight_reels', label: 'Generating video highlight reels from session recordings.' },
+                    { value: 'other', label: 'Other' },
+                ]},
+                { id: 'task_other', text: 'Specify the other task:', type: 'text', condition: (s) => s.task && s.task.other, placeholder: 'e.g., Generating synthetic personas' },
+                { id: 'oversight', text: 'Describe the extent of human verification and oversight.', type: 'radio', options: [
+                    { value: 'full_review', label: 'All AI outputs were manually reviewed, refined, and validated.' },
+                    { value: 'spot_check', label: 'AI outputs were spot-checked for accuracy.' },
+                    { value: 'unverified', label: 'AI outputs were used as-is with minimal human review.' },
+                ]},
+            ],
+            external: [
+                { id: 'tools', text: 'List the primary AI tool(s) and version(s) used.', type: 'text', placeholder: 'e.g., ChatGPT-4o, Marvin v2.1' },
+                 { id: 'task', text: 'What specific research task was the AI used for?', type: 'checkbox', options: [
+                    { value: 'screening', label: 'Screening and segmenting participant candidates.' },
+                    { value: 'discussion_guide', label: 'Generating draft discussion guides or survey questions.' },
+                    { value: 'transcription', label: 'Transcribing interviews or audio recordings.' },
+                    { value: 'behavioral_analysis', label: 'Analyzing behavioral data from recordings (e.g., clicks, navigation).' },
+                    { value: 'sentiment_analysis', label: 'Analyzing sentiment or emotion from text, audio, or video.' },
+                    { value: 'theming', label: 'Generating initial thematic codes from qualitative data.' },
+                    { value: 'summarization', label: 'Summarizing open-ended survey responses or documents.' },
+                    { value: 'insight_synthesis', label: 'Synthesizing data from multiple sources to identify patterns.' },
+                    { value: 'highlight_reels', label: 'Generating video highlight reels from session recordings.' },
+                    { value: 'other', label: 'Other' },
+                ]},
+                { id: 'task_other', text: 'Specify the other task:', type: 'text', condition: (s) => s.task && s.task.other, placeholder: 'e.g., Generating synthetic personas' },
+                { id: 'oversight', text: 'Describe the extent of human verification and oversight.', type: 'radio', options: [
+                    { value: 'full_review', label: 'All AI outputs were manually reviewed, refined, and validated.' },
+                    { value: 'spot_check', label: 'AI outputs were spot-checked for accuracy.' },
+                ]},
+            ]
+        };
+        
+        function resetAll() {
+            state = {};
+            questions = [];
+            currentQuestionIndex = 0;
+            formContainer.innerHTML = initialFormHTML;
+            formNav.style.display = 'none';
+            draftOutput.textContent = 'Please select an audience to begin.';
+            copyBtn.disabled = true;
+            document.querySelectorAll('.audience-btn').forEach(btn => {
+                btn.addEventListener('click', handleAudienceSelect);
+            });
+        }
+
+        function handleAudienceSelect(e) {
+            const audience = e.currentTarget.dataset.audience;
+            state.audience = audience;
+            questions = questionLibrary[audience];
+            
+            document.getElementById('audience-step').style.display = 'none';
+            
+            renderQuestions();
+            formNav.style.display = 'flex';
+            updateDraft();
+        }
+
+        function renderQuestions() {
+            formContainer.innerHTML = ''; // Clear previous questions
+            questions.forEach((q, index) => {
+                const isVisible = !q.condition || q.condition(state);
+                const questionEl = document.createElement('div');
+                questionEl.className = `question-block ${index === currentQuestionIndex ? 'active' : ''}`;
+                questionEl.dataset.index = index;
+                
+                let inputHtml = '';
+                if (q.type === 'radio' || q.type === 'checkbox') {
+                    inputHtml = q.options.map(opt => {
+                        const isChecked = q.type === 'radio' 
+                            ? state[q.id] === opt.value
+                            : (state[q.id] && state[q.id][opt.value]);
+                        return `
+                        <label class="input-label flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${isChecked ? 'selected' : ''}">
+                            <input type="${q.type}" name="${q.id}" value="${opt.value}" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                            <span class="ml-3 text-gray-700">${opt.label}</span>
+                        </label>
+                    `}).join('');
+                } else if (q.type === 'text') {
+                    inputHtml = `<input type="text" name="${q.id}" placeholder="${q.placeholder || ''}" value="${state[q.id] || ''}" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">`;
+                }
+
+                questionEl.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">${q.text}</h3>
+                    <div class="space-y-3">${inputHtml}</div>
+                `;
+                
+                if (!isVisible) {
+                    questionEl.style.display = 'none';
+                }
+                
+                formContainer.appendChild(questionEl);
+            });
+            
+            formContainer.addEventListener('input', handleFormChange);
+            updateNavButtons();
+        }
+        
+        function handleFormChange(e) {
+            if (e.target.name) {
+                const inputType = e.target.type;
+                const name = e.target.name;
+                const value = e.target.value;
+
+                if (inputType === 'checkbox') {
+                    if (!state[name]) {
+                        state[name] = {};
+                    }
+                    state[name][value] = e.target.checked;
+                } else {
+                    state[name] = value;
+                }
+                
+                if (inputType === 'radio' || inputType === 'checkbox') {
+                    const activeQuestion = formContainer.querySelector('.question-block.active');
+                    if (activeQuestion) {
+                        currentQuestionIndex = parseInt(activeQuestion.dataset.index);
+                    }
+                    renderQuestions();
+                }
+                
+                updateDraft();
+            }
+        }
+
+        function updateNavButtons() {
+            const visibleQuestions = questions.filter(q => !q.condition || q.condition(state));
+            const currentQuestionObject = questions[currentQuestionIndex];
+            const visibleIndex = currentQuestionObject ? visibleQuestions.findIndex(q => q.id === currentQuestionObject.id) : -1;
+            const isLastStep = visibleIndex >= visibleQuestions.length - 1;
+            
+            prevBtn.disabled = false; 
+            nextBtn.disabled = isLastStep;
+            
+            if (isLastStep) {
+                nextBtn.setAttribute('title', "You're at the last step.");
+            } else {
+                nextBtn.removeAttribute('title');
+            }
+
+            if (visibleIndex !== -1) {
+                stepCounter.textContent = `Step ${visibleIndex + 1} of ${visibleQuestions.length}`;
+            }
+        }
+
+        function navigateQuestions(direction) {
+            let nextIndex = currentQuestionIndex + direction;
+            
+            while (nextIndex >= 0 && nextIndex < questions.length) {
+                if (!questions[nextIndex].condition || questions[nextIndex].condition(state)) {
+                    currentQuestionIndex = nextIndex;
+                    break;
+                }
+                nextIndex += direction;
+            }
+
+            document.querySelectorAll('.question-block').forEach(el => el.classList.remove('active'));
+            const newActive = document.querySelector(`.question-block[data-index="${currentQuestionIndex}"]`);
+            if (newActive) newActive.classList.add('active');
+            
+            updateNavButtons();
+        }
+
+        function formatTaskList(taskState, taskOtherState) {
+            const taskQuestion = questions.find(q => q.id === 'task');
+            if (!taskQuestion || !taskState) return '[Specify AI task(s)]';
+
+            const selectedTasks = Object.keys(taskState)
+                .filter(key => taskState[key] && key !== 'other')
+                .map(key => {
+                    const option = taskQuestion.options.find(o => o.value === key);
+                    return option ? option.label.toLowerCase().replace(/\.$/, '') : '';
+                });
+            
+            if (taskState.other && taskOtherState) {
+                selectedTasks.push(taskOtherState.toLowerCase());
+            }
+
+            if (selectedTasks.length === 0) return '[Specify AI task(s)]';
+            if (selectedTasks.length === 1) return selectedTasks[0];
+            if (selectedTasks.length === 2) return selectedTasks.join(' and ');
+            return selectedTasks.slice(0, -1).join(', ') + ', and ' + selectedTasks.slice(-1);
+        }
+
+        function updateDraft() {
+            let sentences = [];
+            const { audience, purpose, training, optout, tools, task, task_other, oversight } = state;
+
+            if (audience === 'participant') {
+                let purposeSentence = '';
+                if (purpose === 'analysis') {
+                    purposeSentence = "To help us process and identify themes in your feedback, we may use automated analysis tools, including artificial intelligence, to analyze data such as interview transcripts.";
+                } else if (purpose === 'interaction') {
+                    purposeSentence = "During this study, you may interact with an AI-powered research assistant designed to ask questions.";
+                } else if (purpose === 'both') {
+                    purposeSentence = "As part of this study, you may interact with an AI-powered research assistant, and we may also use automated analysis tools to help us process and identify themes in your feedback from sources like interview transcripts.";
+                }
+                if (purposeSentence) sentences.push(purposeSentence);
+                
+                sentences.push("All data will be anonymized to protect your personal information.");
+
+                let trainingSentence = '';
+                if (training === 'yes') {
+                    trainingSentence = "Your anonymized data may be used to help train and improve our AI models.";
+                    if (optout === 'yes') {
+                        trainingSentence += " You will be provided with a clear option to opt-out of having your data used for this purpose.";
+                    } else if (optout === 'no') {
+                        trainingSentence += " It is not feasible to opt-out of this use case, but your data will always be anonymized.";
+                    }
+                } else if (training === 'no') {
+                    trainingSentence = "Your data will not be used for training AI models.";
+                }
+                if (trainingSentence) sentences.push(trainingSentence);
+
+            } else if (audience === 'internal' || audience === 'external') {
+                const taskList = formatTaskList(task, task_other);
+                const toolList = tools || '[Specify AI tools and versions]';
+                
+                let oversightSentence = '';
+                if (oversight === 'full_review') {
+                    oversightSentence = 'To ensure both efficiency and accuracy, all AI-generated outputs were subsequently reviewed, refined, and validated by a human.';
+                } else if (oversight === 'spot_check') {
+                    oversightSentence = 'To ensure both efficiency and accuracy, AI-generated outputs were spot-checked by a human evaluator.';
+                } else if (oversight === 'unverified' && audience === 'internal') {
+                    oversightSentence = 'AI-generated outputs were used to inform the research process with minimal human review.';
+                }
+
+                sentences.push(`For this research, analysis was conducted using a combination of AI-powered tools (${toolList}) and human evaluation. AI was specifically used for ${taskList}.`);
+                if (oversightSentence) sentences.push(oversightSentence);
+            }
+
+            draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
+            copyBtn.disabled = sentences.length === 0;
+        }
+        
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = draftOutput.textContent;
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = textToCopy;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextarea);
+
+            copyFeedback.classList.remove('opacity-0');
+            setTimeout(() => {
+                copyFeedback.classList.add('opacity-0');
+            }, 2000);
+        });
+
+        resetBtn.addEventListener('click', resetAll);
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex === 0) {
+                resetAll();
+            } else {
+                navigateQuestions(-1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => navigateQuestions(1));
+
+        resetAll();
+    });
+    </script>
+</body>
+</html>
+
