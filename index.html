@@ -83,7 +83,7 @@
         
         /* Fix for Squarespace iframe scrolling */
         #disclosure-tool-wrapper {
-            min-height: 950px; /* Adjust this value as needed */
+            min-height: 1050px; /* Adjust this value as needed */
         }
 
         /* Fix for Squarespace column layout issues */
@@ -151,7 +151,7 @@
                      <div class="card p-6 md:p-8 flex flex-col">
                         <div class="flex-grow">
                             <h3 class="text-2xl font-semibold text-gray-900 mb-4">Generated Draft</h3>
-                            <p class="text-gray-700 mb-6">Your disclosure statement will be drafted here in real-time. Review and copy the final text. </p>
+                            <p class="text-gray-700 mb-6">Your disclosure statement will be drafted here in real-time. Review and copy the final text.</p>
                             <div id="draft-container" class="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[200px]">
                                 <p id="draftOutput" class="text-gray-700">Please select an audience to begin.</p>
                             </div>
@@ -189,16 +189,21 @@
 
         const questionLibrary = {
             participant: [
-                { id: 'purpose', text: 'How will AI be used in relation to the participant?', type: 'radio', options: [
-                    { value: 'analysis', label: 'To analyze participant data (e.g., transcribe interviews, identify themes).' },
-                    { value: 'interaction', label: 'To interact directly with the participant (e.g., as a chatbot interviewer).' },
-                    { value: 'both', label: 'Both to interact with and analyze participant data.' },
+                { id: 'interaction', text: 'How might the participant interact with AI during the study?', type: 'checkbox', options: [
+                    { value: 'scheduling', label: 'An AI assistant may be used to help schedule your session.' },
+                    { value: 'interviewer', label: 'You may interact with an AI assistant or interviewer during the session.' },
+                    { value: 'product_feature', label: 'You will be testing a product that uses AI for its features.' },
+                ]},
+                { id: 'analysis', text: 'How will AI be used to analyze data from your session?', type: 'checkbox', options: [
+                    { value: 'transcription', label: 'To create a written transcript of our conversation.' },
+                    { value: 'theming', label: 'To identify themes, summarize feedback, or analyze sentiment.' },
+                    { value: 'behavioral', label: 'To analyze your behavior during the session (e.g., how you navigate a screen).' },
                 ]},
                 { id: 'training', text: 'Will participant data be used to train AI models?', type: 'radio', options: [
                     { value: 'yes', label: 'Yes, data will be used for training.' },
                     { value: 'no', label: 'No, data will NOT be used for training.' },
                 ]},
-                { id: 'optout', text: 'If data is used for training, will participants have an opt-out?', condition: (s) => s.training === 'yes', type: 'radio', options: [
+                { id: 'optout', text: 'If data is used for training, can participants opt-out?', condition: (s) => s.training === 'yes', type: 'radio', options: [
                     { value: 'yes', label: 'Yes, a clear opt-out will be provided.' },
                     { value: 'no', label: 'No, an opt-out is not feasible.' },
                 ]},
@@ -399,33 +404,41 @@
 
         function updateDraft() {
             let sentences = [];
-            const { audience, purpose, training, optout, tools, task, task_other, oversight } = state;
+            const { audience, interaction, analysis, training, optout, tools, task, task_other, oversight } = state;
 
             if (audience === 'participant') {
-                let purposeSentence = '';
-                if (purpose === 'analysis') {
-                    purposeSentence = "To help us process and identify themes in your feedback, we may use automated analysis tools, including artificial intelligence, to analyze data such as interview transcripts.";
-                } else if (purpose === 'interaction') {
-                    purposeSentence = "During this study, you may interact with an AI-powered research assistant designed to ask questions.";
-                } else if (purpose === 'both') {
-                    purposeSentence = "As part of this study, you may interact with an AI-powered research assistant, and we may also use automated analysis tools to help us process and identify themes in your feedback from sources like interview transcripts.";
-                }
-                if (purposeSentence) sentences.push(purposeSentence);
-                
-                sentences.push("All data will be anonymized to protect your personal information.");
+                const isInteractionSelected = interaction && Object.values(interaction).some(v => v);
+                const isAnalysisSelected = analysis && Object.values(analysis).some(v => v);
 
-                let trainingSentence = '';
-                if (training === 'yes') {
-                    trainingSentence = "Your anonymized data may be used to help train and improve our AI models.";
-                    if (optout === 'yes') {
-                        trainingSentence += " You will be provided with a clear option to opt-out of having your data used for this purpose.";
-                    } else if (optout === 'no') {
-                        trainingSentence += " It is not feasible to opt-out of this use case, but your data will always be anonymized.";
+                if (isInteractionSelected || isAnalysisSelected) {
+                    sentences.push("As part of this study, we use artificial intelligence (AI) to help with our research.");
+
+                    if (isInteractionSelected) {
+                        sentences.push("You may interact with AI-powered tools, for instance, to help schedule your session or as part of a product you are testing.");
                     }
-                } else if (training === 'no') {
-                    trainingSentence = "Your data will not be used for training AI models.";
+                    if (isAnalysisSelected) {
+                        sentences.push("We also use AI to help us analyze feedback from the session by creating transcripts and identifying key themes.");
+                    }
                 }
-                if (trainingSentence) sentences.push(trainingSentence);
+                
+                if (training === 'yes') {
+                    let trainingSentence = "Your anonymized data may also be used to train and improve our AI models.";
+                    if (optout === 'yes') {
+                        trainingSentence += " You will be provided with a clear option to opt-out of this.";
+                    } else if (optout === 'no') {
+                        trainingSentence += " It is not feasible to opt-out of this use case.";
+                    }
+                    sentences.push(trainingSentence);
+                } else if (training === 'no') {
+                    sentences.push("Your data will not be used for training AI models.");
+                }
+
+                if (isInteractionSelected || isAnalysisSelected || training) {
+                    sentences.push("Please be assured that all data is anonymized to protect your personal information.");
+                }
+                
+                draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
+                copyBtn.disabled = sentences.length === 0;
 
             } else if (audience === 'internal' || audience === 'external') {
                 const taskList = formatTaskList(task, task_other);
@@ -442,10 +455,10 @@
 
                 sentences.push(`For this research, analysis was conducted using a combination of AI-powered tools (${toolList}) and human evaluation. AI was specifically used for ${taskList}.`);
                 if (oversightSentence) sentences.push(oversightSentence);
-            }
 
-            draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
-            copyBtn.disabled = sentences.length === 0;
+                draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
+                copyBtn.disabled = sentences.length === 0;
+            }
         }
         
         copyBtn.addEventListener('click', () => {
@@ -480,4 +493,3 @@
     </script>
 </body>
 </html>
-
