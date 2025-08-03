@@ -135,6 +135,10 @@
                                     <strong class="text-gray-800">External Stakeholders</strong>
                                     <p class="text-sm text-gray-600">For public reports, case studies, or academic papers.</p>
                                 </button>
+                                <button data-audience="academic" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                                    <strong class="text-gray-800">Academic Publication</strong>
+                                    <p class="text-sm text-gray-600">For journals, conferences, and academic papers.</p>
+                                </button>
                             </div>
                         </div>
                         <!-- Dynamic Questions will be injected here -->
@@ -163,6 +167,9 @@
                              </div>
                              <button id="resetBtn" class="btn btn-secondary">Start Over</button>
                         </div>
+                        <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 italic">
+                            <p><strong>A Note on This Tool:</strong> This drafter is a guide based on current best practices and is not a substitute for legal advice. As the researcher, you are ultimately accountable for the accuracy and integrity of your final statement.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -186,6 +193,18 @@
         let state = {};
         let questions = [];
         let currentQuestionIndex = 0;
+
+        const academicTasks = [
+             { value: 'conceptualization', label: 'To revise research questions or hypotheses.' },
+             { value: 'literature_search', label: 'To identify and summarize relevant literature.' },
+             { value: 'data_collection', label: 'To create a first draft of a survey or interview script.' },
+             { value: 'thematic_analysis', label: 'To generate initial thematic codes from qualitative data.' },
+             { value: 'data_summarization', label: 'To summarize quantitative or qualitative datasets.' },
+             { value: 'code_generation', label: 'To generate or debug code for data analysis or modeling.' },
+             { value: 'writing_assistance', label: 'To improve grammar, style, and readability of the manuscript.' },
+             { value: 'project_admin', label: 'To establish a list of tasks and timelines for the study.' },
+             { value: 'other', label: 'Other' },
+        ];
 
         const questionLibrary = {
             participant: [
@@ -248,10 +267,12 @@
                     { value: 'full_review', label: 'All AI outputs were manually reviewed, refined, and validated.' },
                     { value: 'spot_check', label: 'AI outputs were spot-checked for accuracy.' },
                 ]},
-            ]
+            ],
+            academic: [] // Academic flow is now handled separately
         };
         
         function resetAll() {
+            formContainer.removeEventListener('input', handleFormChange);
             state = {};
             questions = [];
             currentQuestionIndex = 0;
@@ -266,13 +287,18 @@
 
         function handleAudienceSelect(e) {
             const audience = e.currentTarget.dataset.audience;
-            state.audience = audience;
-            questions = questionLibrary[audience];
+            state = { audience: audience }; // Reset state with new audience
             
-            document.getElementById('audience-step').style.display = 'none';
-            
-            renderQuestions();
-            formNav.style.display = 'flex';
+            if (audience === 'academic') {
+                state.academicTools = [];
+                state.academicStep = 'tools';
+                renderAcademicFlow();
+            } else {
+                questions = questionLibrary[audience];
+                currentQuestionIndex = 0;
+                renderQuestions();
+                formNav.style.display = 'flex';
+            }
             updateDraft();
         }
 
@@ -348,9 +374,16 @@
             const currentQuestionObject = questions[currentQuestionIndex];
             const visibleIndex = currentQuestionObject ? visibleQuestions.findIndex(q => q.id === currentQuestionObject.id) : -1;
             const isLastStep = visibleIndex >= visibleQuestions.length - 1;
+            const isFirstStep = visibleIndex === 0;
             
             prevBtn.disabled = false; 
             nextBtn.disabled = isLastStep;
+
+            if (isFirstStep) {
+                prevBtn.textContent = 'Back to Audience';
+            } else {
+                prevBtn.textContent = 'Previous';
+            }
             
             if (isLastStep) {
                 nextBtn.setAttribute('title', "You're at the last step.");
@@ -381,14 +414,21 @@
             updateNavButtons();
         }
 
-        function formatTaskList(taskState, taskOtherState) {
-            const taskQuestion = questions.find(q => q.id === 'task');
-            if (!taskQuestion || !taskState) return '[Specify AI task(s)]';
+        function formatTaskList(taskState, taskOtherState, audience) {
+            let taskOptions = [];
+            if (audience === 'academic') {
+                taskOptions = academicTasks;
+            } else {
+                const taskQuestion = questions.find(q => q.id === 'task');
+                if (taskQuestion) taskOptions = taskQuestion.options;
+            }
+
+            if (!taskState) return '[Specify AI task(s)]';
 
             const selectedTasks = Object.keys(taskState)
                 .filter(key => taskState[key] && key !== 'other')
                 .map(key => {
-                    const option = taskQuestion.options.find(o => o.value === key);
+                    const option = taskOptions.find(o => o.value === key);
                     return option ? option.label.toLowerCase().replace(/\.$/, '') : '';
                 });
             
@@ -401,12 +441,161 @@
             if (selectedTasks.length === 2) return selectedTasks.join(' and ');
             return selectedTasks.slice(0, -1).join(', ') + ', and ' + selectedTasks.slice(-1);
         }
+        
+        // --- Academic Flow Functions ---
+        function renderAcademicFlow() {
+            formNav.style.display = 'none';
+            formContainer.innerHTML = '';
+            
+            const creditFooterHTML = `
+                <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 italic">
+                    <p><strong>Credit:</strong> This structured disclosure format is adapted from the <a href="https://crln.acrl.org/index.php/crlnews/article/view/26548/34482" target="_blank" class="underline hover:text-blue-600">Artificial Intelligence Disclosure (AID) Framework</a> proposed by Kari D. Weaver.</p>
+                </div>
+            `;
+
+            if (state.academicStep === 'tools') {
+                formContainer.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-1">Step 1: Document AI Tools Used</h3>
+                    <p class="text-gray-700 mb-6">Add each AI tool you used in your research. You will specify the tasks for each tool individually.</p>
+                `;
+                const toolListContainer = document.createElement('div');
+                toolListContainer.id = 'tool-list-container';
+                
+                (state.academicTools || []).forEach((tool, index) => {
+                    const toolCard = document.createElement('div');
+                    toolCard.className = 'p-4 border rounded-lg mb-2 bg-gray-50 flex justify-between items-center';
+                    toolCard.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-gray-800">${tool.toolName || 'Unnamed Tool'}</p>
+                            <p class="text-sm text-gray-500">${Object.keys(tool.tasks || {}).filter(k => tool.tasks[k]).join(', ')}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <button data-index="${index}" class="edit-tool-btn text-sm text-blue-600 hover:underline p-1">
+                                <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                                Edit
+                            </button>
+                            <button data-index="${index}" class="remove-tool-btn text-sm text-red-600 hover:underline p-1 ml-2">
+                                <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                    toolListContainer.appendChild(toolCard);
+                });
+                formContainer.appendChild(toolListContainer);
+
+                const addToolBtn = document.createElement('button');
+                addToolBtn.id = 'add-tool-btn';
+                addToolBtn.className = 'btn w-full mt-4';
+                addToolBtn.textContent = 'Add a Tool';
+                formContainer.appendChild(addToolBtn);
+
+                const nav = document.createElement('div');
+                nav.className = 'mt-8 pt-6 border-t flex justify-between items-center';
+                nav.innerHTML = `
+                    <button id="academic-back-btn" class="btn btn-secondary">Back to Audience</button>
+                    <button id="academic-next-btn" class="btn">Next</button>
+                `;
+                formContainer.appendChild(nav);
+                formContainer.insertAdjacentHTML('beforeend', creditFooterHTML);
+                
+                document.getElementById('academic-next-btn').disabled = state.academicTools.length === 0;
+                
+            } else if (state.academicStep === 'privacy') {
+                formContainer.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Step 2: Privacy and Security</h3>
+                     <p class="text-gray-700 mb-6">Describe how you handled data privacy and security. The text below is a common example you can edit.</p>
+                    <textarea id="privacy-statement" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="6">${state.privacyStatement || 'No identifiable data was shared with public AI tools during this study. Only an institutional instance of [Tool Name] was used to analyze anonymized research data in compliance with [Institution Name] privacy and security policies.'}</textarea>
+                    <div class="mt-8 pt-6 border-t flex justify-between items-center">
+                        <button id="academic-back-btn" class="btn btn-secondary">Previous</button>
+                        <button id="academic-next-btn" class="btn">Next</button>
+                    </div>
+                `;
+                 formContainer.insertAdjacentHTML('beforeend', creditFooterHTML);
+
+            } else if (state.academicStep === 'location') {
+                formContainer.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Step 3: Final Instructions</h3>
+                    <p class="text-gray-700 mb-4">Your disclosure statement has been generated. Based on the best-practice AID Framework, this statement should be appended to the end of your paper, similar to an acknowledgements section.</p>
+                    <div class="mt-8 pt-6 border-t flex justify-between items-center">
+                        <button id="academic-back-btn" class="btn btn-secondary">Previous</button>
+                    </div>
+                `;
+                 formContainer.insertAdjacentHTML('beforeend', creditFooterHTML);
+            }
+        }
+
+        function renderAddEditToolForm(editIndex = -1) {
+            state.editingToolIndex = editIndex;
+            state.academicToolStep = 'details';
+            state.currentAcademicTool = editIndex > -1 ? JSON.parse(JSON.stringify(state.academicTools[editIndex])) : { tasks: {} };
+            renderAddEditToolFormStep();
+        }
+
+        function renderAddEditToolFormStep() {
+            const tool = state.currentAcademicTool;
+            let formHtml = '';
+            const creditFooterHTML = `
+                <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 italic">
+                    <p><strong>Credit:</strong> This structured disclosure format is adapted from the <a href="https://crln.acrl.org/index.php/crlnews/article/view/26548/34482" target="_blank" class="underline hover:text-blue-600">Artificial Intelligence Disclosure (AID) Framework</a> proposed by Kari D. Weaver.</p>
+                </div>
+            `;
+
+            if (state.academicToolStep === 'details') {
+                formHtml = `
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-1">Tool Details</h3>
+                    <p class="text-gray-700 mb-6">Provide the specific details for this tool.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="font-semibold text-gray-700">AI Tool Name</label>
+                            <input type="text" id="toolName" placeholder="e.g., GPT-4" value="${tool.toolName || ''}" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Access Date (or Version)</label>
+                            <input type="text" id="toolVersion" placeholder="e.g., August 1, 2025" value="${tool.toolVersion || ''}" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Developer</label>
+                            <input type="text" id="toolDeveloper" placeholder="e.g., OpenAI" value="${tool.toolDeveloper || ''}" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-4">
+                        <button id="cancel-tool-btn" class="btn btn-secondary">Cancel</button>
+                        <button id="next-tool-step-btn" class="btn">Next: Assign Tasks</button>
+                    </div>
+                `;
+            } else if (state.academicToolStep === 'tasks') {
+                formHtml = `
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-1">Tasks Performed</h3>
+                    <p class="text-gray-700 mb-6">Select all tasks that were performed using <strong>${tool.toolName || 'this tool'}</strong>.</p>
+                    <div id="academic-tasks-container" class="space-y-3 mt-2">
+                        ${academicTasks.map(task => `
+                            <label class="input-label flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${tool.tasks && tool.tasks[task.value] ? 'selected' : ''}">
+                                <input type="checkbox" name="academic_task" value="${task.value}" class="h-4 w-4 text-blue-600 border-gray-300" ${tool.tasks && tool.tasks[task.value] ? 'checked' : ''}>
+                                <span class="ml-3 text-gray-700">${task.label}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div id="task_other_container" class="${tool.tasks && tool.tasks.other ? '' : 'hidden'}">
+                        <label class="font-semibold text-gray-700 mt-4 block">Specify the other role:</label>
+                        <input type="text" id="task_other_academic" placeholder="e.g., To generate synthetic survey data" value="${tool.task_other || ''}" class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        <div id="task_other_error" class="text-red-500 text-sm mt-1"></div>
+                    </div>
+                    <div class="mt-6 flex justify-between space-x-4">
+                        <button id="prev-tool-step-btn" class="btn btn-secondary">Previous</button>
+                        <button id="save-tool-btn" class="btn">Save Tool</button>
+                    </div>
+                `;
+            }
+            formContainer.innerHTML = formHtml + creditFooterHTML;
+        }
 
         function updateDraft() {
-            let sentences = [];
-            const { audience, interaction, analysis, training, optout, tools, task, task_other, oversight } = state;
+            let paragraphs = [];
+            const { audience, interaction, analysis, training, optout, tools, academicTools, privacyStatement } = state;
 
             if (audience === 'participant') {
+                let sentences = [];
                 const isInteractionSelected = interaction && Object.values(interaction).some(v => v);
                 const isAnalysisSelected = analysis && Object.values(analysis).some(v => v);
 
@@ -441,8 +630,9 @@
                 copyBtn.disabled = sentences.length === 0;
 
             } else if (audience === 'internal' || audience === 'external') {
-                const taskList = formatTaskList(task, task_other);
-                const toolList = tools || '[Specify AI tools and versions]';
+                const { task, task_other, oversight } = state;
+                const taskList = formatTaskList(task, task_other, audience);
+                const toolList = state.tools || '[Specify AI tools and versions]';
                 
                 let oversightSentence = '';
                 if (oversight === 'full_review') {
@@ -453,13 +643,140 @@
                     oversightSentence = 'AI-generated outputs were used to inform the research process with minimal human review.';
                 }
 
-                sentences.push(`For this research, analysis was conducted using a combination of AI-powered tools (${toolList}) and human evaluation. AI was specifically used for ${taskList}.`);
-                if (oversightSentence) sentences.push(oversightSentence);
+                paragraphs.push(`For this research, analysis was conducted using a combination of AI-powered tools (${toolList}) and human evaluation. AI was specifically used for ${taskList}.`);
+                if (oversightSentence) paragraphs.push(oversightSentence);
 
-                draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
-                copyBtn.disabled = sentences.length === 0;
+                draftOutput.textContent = paragraphs.join('\n\n') || 'Please answer the questions to generate a draft.';
+                copyBtn.disabled = paragraphs.length === 0;
+
+            } else if (audience === 'academic') {
+                let draft = '';
+                const toolList = (academicTools || []).map(t => `${t.toolName || '[Tool Name]'} (accessed on ${t.toolVersion || '[Access Date]'}, from ${t.toolDeveloper || '[Developer]'})`).join('; ');
+                if(toolList) draft += `Artificial Intelligence Tool: ${toolList}\n\n`;
+
+                const taskMap = {
+                    conceptualization: 'Conceptualization',
+                    data_collection: 'Data Collection Methods',
+                    thematic_analysis: 'Data Analysis',
+                    data_summarization: 'Data Analysis',
+                    code_generation: 'Data Analysis',
+                    writing_assistance: 'Writing—Review & Editing',
+                    drafting_sections: 'Writing—Review & Editing',
+                    literature_search: 'Writing—Review & Editing',
+                    project_admin: 'Project Administration'
+                };
+
+                const groupedTasks = {};
+                (academicTools || []).forEach(tool => {
+                    const toolName = tool.toolName || '[Tool Name]';
+                    Object.keys(tool.tasks || {}).filter(k => tool.tasks[k]).forEach(taskKey => {
+                        const phase = taskMap[taskKey] || 'Other';
+                        if (!groupedTasks[phase]) groupedTasks[phase] = [];
+                        const taskLabel = academicTasks.find(t => t.value === taskKey).label;
+                        const fullTaskDesc = taskKey === 'other' ? tool.task_other : taskLabel;
+                        groupedTasks[phase].push(`${toolName} was used to ${fullTaskDesc.toLowerCase().replace(/\.$/, '')}.`);
+                    });
+                });
+
+                Object.keys(groupedTasks).sort().forEach(phase => {
+                    draft += `${phase}: ${groupedTasks[phase].join(' ')}\n\n`;
+                });
+
+                if (privacyStatement) {
+                    draft += `Privacy and Security: ${privacyStatement}`;
+                }
+
+                draftOutput.textContent = draft || 'Add one or more tools to generate a draft.';
+                copyBtn.disabled = !draft;
             }
         }
+        
+        // --- Main Event Listeners ---
+        
+        formContainer.addEventListener('click', (e) => {
+            if (state.audience === 'academic') {
+                if (e.target.id === 'add-tool-btn') renderAddEditToolForm();
+                if (e.target.closest('.edit-tool-btn')) renderAddEditToolForm(parseInt(e.target.closest('.edit-tool-btn').dataset.index));
+                if (e.target.closest('.remove-tool-btn')) {
+                    state.academicTools.splice(parseInt(e.target.closest('.remove-tool-btn').dataset.index), 1);
+                    renderAcademicFlow();
+                    updateDraft();
+                }
+                if (e.target.id === 'academic-back-btn') {
+                    if (state.academicStep === 'tools') resetAll();
+                    else if (state.academicStep === 'privacy') { state.academicStep = 'tools'; renderAcademicFlow(); }
+                    else if (state.academicStep === 'location') { state.academicStep = 'privacy'; renderAcademicFlow(); }
+                }
+                if (e.target.id === 'academic-next-btn') {
+                    if (state.academicStep === 'tools') { state.academicStep = 'privacy'; renderAcademicFlow(); }
+                    else if (state.academicStep === 'privacy') {
+                        state.privacyStatement = document.getElementById('privacy-statement').value;
+                        state.academicStep = 'location';
+                        renderAcademicFlow();
+                    }
+                }
+                if (e.target.id === 'cancel-tool-btn') { state.academicStep = 'tools'; renderAcademicFlow(); }
+                if (e.target.id === 'next-tool-step-btn') {
+                    state.currentAcademicTool.toolName = document.getElementById('toolName').value;
+                    state.currentAcademicTool.toolVersion = document.getElementById('toolVersion').value;
+                    state.currentAcademicTool.toolDeveloper = document.getElementById('toolDeveloper').value;
+                    state.academicToolStep = 'tasks';
+                    renderAddEditToolFormStep();
+                }
+                if (e.target.id === 'prev-tool-step-btn') {
+                     state.currentAcademicTool.tasks = {};
+                    document.querySelectorAll('input[name="academic_task"]:checked').forEach(checkbox => {
+                        state.currentAcademicTool.tasks[checkbox.value] = true;
+                    });
+                    if (state.currentAcademicTool.tasks.other) {
+                        state.currentAcademicTool.task_other = document.getElementById('task_other_academic').value;
+                    }
+                    state.academicToolStep = 'details';
+                    renderAddEditToolFormStep();
+                }
+                if (e.target.id === 'save-tool-btn') {
+                    const newTool = state.currentAcademicTool;
+                    newTool.tasks = {};
+                    document.querySelectorAll('input[name="academic_task"]:checked').forEach(checkbox => {
+                        newTool.tasks[checkbox.value] = true;
+                    });
+                    
+                    if (newTool.tasks.other) {
+                        newTool.task_other = document.getElementById('task_other_academic').value;
+                        if (!newTool.task_other.trim()) {
+                            document.getElementById('task_other_error').textContent = 'Please specify the other task to continue.';
+                            return;
+                        }
+                    }
+
+                    if (state.editingToolIndex > -1) {
+                        state.academicTools[state.editingToolIndex] = newTool;
+                    } else {
+                        state.academicTools.push(newTool);
+                    }
+                    state.academicStep = 'tools';
+                    renderAcademicFlow();
+                    updateDraft();
+                }
+            }
+        });
+
+        formContainer.addEventListener('input', (e) => {
+             if (state.audience === 'academic') {
+                if (e.target.id === 'privacy-statement') {
+                    state.privacyStatement = e.target.value;
+                    updateDraft();
+                }
+                if (e.target.name === 'academic_task') {
+                     document.querySelectorAll('input[name="academic_task"]').forEach(checkbox => {
+                        checkbox.closest('.input-label').classList.toggle('selected', checkbox.checked);
+                    });
+                    if (e.target.value === 'other') {
+                        document.getElementById('task_other_container').classList.toggle('hidden', !e.target.checked);
+                    }
+                }
+             }
+        });
         
         copyBtn.addEventListener('click', () => {
             const textToCopy = draftOutput.textContent;
@@ -477,15 +794,17 @@
         });
 
         resetBtn.addEventListener('click', resetAll);
-        
         prevBtn.addEventListener('click', () => {
-            if (currentQuestionIndex === 0) {
+            const visibleQuestions = questions.filter(q => !q.condition || q.condition(state));
+            const currentQuestionObject = questions[currentQuestionIndex];
+            const visibleIndex = currentQuestionObject ? visibleQuestions.findIndex(q => q.id === currentQuestionObject.id) : -1;
+            
+            if (visibleIndex === 0) {
                 resetAll();
             } else {
                 navigateQuestions(-1);
             }
         });
-
         nextBtn.addEventListener('click', () => navigateQuestions(1));
 
         resetAll();
