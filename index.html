@@ -7,80 +7,68 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Updated font link to include Alexandria, Lexend (multiple weights), and Permanent Marker -->
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700&family=Lexend:wght@200;500&family=Permanent+Marker&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Modern Professional Blue -->
+    <!-- Brand: Hey Kaleb & Co. Riso Pop on Newsprint v1.5 (tokens.json). Mulish body, one Playfair Black display word, Anton eyebrows. -->
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Mulish:wght@400;600;700&family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <script>
+        // v1.5 brand: remap the Tailwind utilities this file uses onto brand tokens.
+        tailwind.config = { theme: { extend: { colors: {
+            gray:  { 50: '#DADACF', 100: 'rgba(22,22,22,.10)', 200: 'rgba(22,22,22,.14)', 300: '#5C584E',
+                     500: '#5C584E', 600: '#5C584E', 700: '#373239', 800: '#373239', 900: '#373239' },
+            blue:  { 500: '#0D7269', 600: '#0D7269' },
+            green: { 600: '#0D7269' },
+            red:   { 500: '#373239', 600: '#373239' }
+        }, fontFamily: { sans: ['Mulish', 'Segoe UI', 'system-ui', 'Arial', 'sans-serif'] } } } };
+    </script>
     <!-- Application Structure Plan: A single-page application designed as a guided, conversational workflow. The user first selects an audience (Participant, Internal, External). Based on this choice, a series of questions appears sequentially in a chat-like interface on the left. As the user answers, a disclosure statement is dynamically drafted in a panel on the right. This structure turns the static protocols from the source report into an interactive, task-oriented tool, making it easy for researchers to generate compliant text without needing to memorize the framework. The user flow is linear and focused: Select -> Answer -> Draft -> Copy. -->
     <!-- Visualization & Content Choices: The primary "visualization" is the dynamically generated text itself. The core interaction is a conversational form using radio buttons and text inputs. This choice is based on the goal of guiding a user through a drafting process. No charts are needed. The content for the questions and the resulting text snippets are drawn directly from the protocols outlined in Part IV of the source report, ensuring the output is grounded in the established framework. The tool operationalizes the report's findings. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         /* --- CUSTOMIZE YOUR STYLES HERE --- */
 
-        /* Updated font rules */
-        h1 {
-            font-family: 'Permanent Marker', cursive;
+        /* --- Brand v1.5 (Riso Pop on Newsprint) --- */
+        :root {
+            --newsprint: #E4E4DC; --ink: #373239; --subtle: #5C584E; --white: #FAFBF7; --panel: #DADACF;
+            --teal: #0D7269; --teal-hover: #0B645C; --teal-active: #0A5750; --persimmon: #DD6B4C; --gold: #E0A33A;
+            --gold-wash: rgba(224,163,58,.20); --line: rgba(22,22,22,.14);
+            --font-hero: "Playfair Display", Georgia, serif;
+            --font-body: "Mulish", "Segoe UI", system-ui, Arial, sans-serif;
+            --font-util: "Anton", Impact, "Arial Narrow Bold", sans-serif;
         }
+        body { font-family: var(--font-body); font-weight: 400; background-color: var(--newsprint); color: var(--ink); line-height: 1.6; }
+        h1 { font-family: var(--font-hero); font-weight: 900; color: var(--ink); letter-spacing: -.01em; line-height: 1.1; }
+        h1 .pop { font-family: var(--font-hero); font-weight: 900; font-style: italic; color: var(--persimmon); }
+        h2, h3 { font-family: var(--font-body); font-weight: 700; color: var(--ink); }
+        .hk-eyebrow { font-family: var(--font-util); font-size: 14px; letter-spacing: .18em; text-transform: uppercase; color: var(--teal); margin: 0 0 12px; }
+        .hk-rule { height: 5px; width: 120px; background: var(--persimmon); margin: 0 0 16px; }
+        a { color: var(--teal); text-decoration: underline; text-underline-offset: 2px; }
+        .audience-btn { background-color: var(--white); border-color: var(--line); border-radius: 5px; }
+        .audience-btn strong { font-family: var(--font-body); font-weight: 700; }
+        .audience-btn:focus-visible, .input-label:focus-within { outline: 3px solid var(--teal); outline-offset: 2px; }
 
-        h2, h3 {
-            font-family: 'Alexandria', sans-serif;
-            font-weight: 700; /* Extra Bold */
-        }
+        /* Focus card: the one place depth lives */
+        .card { background-color: var(--white); border: 0; border-radius: 14px; box-shadow: 3px 6px 14px rgba(22,22,22,.10); }
 
-        body { 
-            font-family: 'Lexend', sans-serif; /* <-- Changed to Lexend */
-            font-weight: 200; /* <-- Set to Extra Light */
-            background-color: #F9FAFB;      
-            color: #1F2937;                 
-        }
-        
-        /* Added this rule for the audience button titles */
-        .audience-btn strong {
-            font-family: 'Lexend', sans-serif;
-            font-weight: 500; /* Medium */
-        }
+        /* Primary button: teal fill, white label */
+        .btn { background-color: var(--teal); color: var(--white); padding: 12px 22px; border-radius: 5px; font-weight: 700; white-space: nowrap;
+               border: 0; transition: background-color .15s ease, transform .05s ease; }
+        .btn:hover:not(:disabled) { background-color: var(--teal-hover); }
+        .btn:active:not(:disabled) { background-color: var(--teal-active); transform: translateY(1px); }
+        .btn:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 
-        .card { 
-            background-color: #FFFFFF; 
-            border: 1px solid #E5E7EB; 
-            border-radius: 0.75rem; 
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); 
-        }
-
-        /* Primary Button Style */
-        .btn { 
-            background-color: #F5BD0E; /* <-- Change this to your primary button color */
-            color: white; 
-            padding: 0.75rem 1.5rem; 
-            border-radius: 0.5rem; 
-            font-weight: 600; 
-            transition: background-color 0.2s; 
-        }
-        .btn:hover:not(:disabled) { 
-            background-color: #fac114; /* <-- Change this to a darker shade for hover */
-        }
-
-        /* Secondary Button Style */
-        .btn-secondary { 
-            background-color: #D8D8D8; 
-            color: #374151; 
-        }
-        .btn-secondary:hover:not(:disabled) { 
-            background-color: #D8D8D8; 
-        }
+        /* Secondary button: ghost */
+        .btn-secondary { background-color: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+        .btn-secondary:hover:not(:disabled) { background-color: transparent; color: var(--teal); box-shadow: inset 0 0 0 2px var(--teal); }
+        .btn-secondary:active:not(:disabled) { background-color: var(--teal-active); color: var(--white); box-shadow: none; }
 
         /* Disabled button style */
-        .btn:disabled {
-            background-color: #E5E7EB;
-            color: #9CA3AF;
-            cursor: not-allowed;
-        }
+        .btn:disabled { background-color: var(--panel); color: var(--subtle); box-shadow: none; cursor: not-allowed; }
 
-        /* Selected Input Style */
-        .input-label.selected { 
-            background-color: #fac114; /* <-- Change this to a light accent color */
-            border-color: #fac114;     /* <-- Change this to your primary accent color */
-        }
-        
+        /* Selected input: gold wash + teal edge */
+        .input-label { background-color: var(--white); border-color: var(--line); border-radius: 5px; }
+        .input-label.selected { background-color: var(--gold-wash); border-color: var(--teal); }
+        input[type="text"], textarea { background-color: var(--white); color: var(--ink); }
+        input[type="radio"], input[type="checkbox"] { accent-color: var(--teal); }
+
         /* Fix for Squarespace iframe scrolling */
         #disclosure-tool-wrapper {
             min-height: 1050px; /* Adjust this value as needed */
@@ -103,14 +91,55 @@
         .question-block { display: none; }
         .question-block.active { display: block; }
         #draftOutput { white-space: pre-wrap; }
+
+        /* --- v2: Layered consent form mode --- */
+        [hidden] { display: none !important; }
+        .cf-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        .cf-choice-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: 0.5rem; }
+        .cf-vendor { border: 1px solid var(--line); border-radius: 14px; padding: 1rem; margin-bottom: 1rem; background-color: var(--newsprint); }
+        .cf-vendor > legend { font-family: var(--font-body); font-weight: 700; padding: 0 0.25rem; color: var(--ink); }
+        .cf-hint { font-size: 0.875rem; color: var(--subtle); margin-top: 0.25rem; }
+        .cf-lint { margin-top: 0.5rem; padding: 0.5rem 0.75rem; border-left: 4px solid var(--gold); background-color: var(--gold-wash); color: var(--ink); font-size: 0.875rem; }
+        .cf-lint:empty { display: none; }
+        .cf-alert-red { border: 3px solid var(--persimmon); background-color: var(--white); color: var(--ink); border-radius: 5px; padding: 0.75rem 1rem; font-size: 0.9rem; }
+        .cf-alert-amber { border-left: 4px solid var(--gold); background-color: var(--gold-wash); color: var(--ink); border-radius: 0; padding: 0.75rem 1rem; font-size: 0.9rem; }
+        .cf-alert-red strong, .cf-alert-amber strong { font-weight: 700; }
+        .cf-scroll { max-height: 70vh; overflow-y: auto; }
+        .cf-badge { display: inline-block; font-family: var(--font-util); font-size: 0.75rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em; background-color: var(--ink); color: var(--white); padding: 0.2rem 0.5rem; border-radius: 5px; }
+        .cf-out-label { font-family: var(--font-util); font-weight: 400; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--teal); margin: 0 0 0.5rem; }
+        .cf-doc { background-color: var(--white); border: 1px solid var(--line); border-radius: 5px; padding: 1rem 1.25rem; color: var(--ink); margin-bottom: 1.25rem; }
+        .cf-doc h4 { font-family: var(--font-body); font-weight: 700; font-size: 1rem; margin: 1.1rem 0 0.4rem; }
+        .cf-doc h4.cf-title { font-size: 1.15rem; margin-top: 0; }
+        .cf-doc p { margin: 0 0 0.6rem; }
+        .cf-table-wrap { overflow-x: auto; margin: 0.5rem 0 0.75rem; }
+        .cf-doc table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .cf-doc caption { text-align: left; font-size: 0.8rem; color: var(--subtle); padding-bottom: 0.25rem; }
+        .cf-doc th, .cf-doc td { border: 1px solid var(--line); padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+        .cf-doc th { background-color: var(--panel); font-weight: 700; }
+        .cf-boxes { display: flex; flex-wrap: wrap; gap: 2.5rem; }
+        .cf-boxes span { min-width: 4rem; }
+        .cf-ph { background-color: var(--gold-wash); color: inherit; padding: 0 0.15rem; border-radius: 2px; }
+        .cf-checklist { border: 1px dashed var(--subtle); border-radius: 5px; padding: 1rem 1.25rem; background-color: var(--white); }
+        .cf-checklist ul { list-style: none; padding: 0; margin: 0; }
+        .cf-checklist li { padding: 0.45rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+        .cf-checklist li:last-child { border-bottom: 0; }
+        .cf-level { display: inline-block; font-family: var(--font-util); font-weight: 400; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.1rem 0.35rem; border-radius: 5px; margin-right: 0.45rem; }
+        .cf-level-block, .cf-level-red { background-color: var(--ink); color: var(--white); box-shadow: inset 4px 0 0 var(--persimmon); padding-left: 0.6rem; }
+        .cf-level-amber { background-color: var(--gold); color: var(--ink); }
+        .cf-level-info { background-color: var(--panel); color: var(--ink); }
+        .cf-remove-btn { font-size: 0.875rem; color: var(--ink); text-decoration: underline; }
+        /* Keep the single-column phone layout from being widened by the vendor table. */
+        @media (max-width: 1023.98px) { .main-grid-layout { grid-template-columns: minmax(0, 1fr); } }
     </style>
 </head>
 <body class="antialiased">
     <!-- This new wrapper div isolates the tool from Squarespace's layout styles -->
     <div id="disclosure-tool-wrapper" style="width: 100%;">
         <div class="container mx-auto px-4 md:px-8 py-8">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">UXR AI Disclosure Drafter</h1>
+            <header class="text-left mb-12">
+                <p class="hk-eyebrow">AIxUXR · Hey Kaleb &amp; Co.</p>
+                <div class="hk-rule" aria-hidden="true"></div>
+                <h1 class="text-4xl md:text-5xl font-black mb-2">UXR AI Disclosure <span class="pop">Drafter</span></h1>
                 <p class="text-lg md:text-xl text-gray-600">A tool to generate disclosure statements based on our established framework.</p>
             </header>
 
@@ -125,7 +154,7 @@
                             <div class="space-y-3">
                                 <button data-audience="participant" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
                                     <strong class="text-gray-800">Research Participants</strong>
-                                    <p class="text-sm text-gray-600">For consent forms and study information sheets.</p>
+                                    <p class="text-sm text-gray-600">For consent forms and study information sheets. Draft a quick paragraph or a layered consent form.</p>
                                 </button>
                                 <button data-audience="internal" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
                                     <strong class="text-gray-800">Internal Stakeholders</strong>
@@ -158,7 +187,9 @@
                             <p class="text-gray-700 mb-6">Your disclosure statement will be drafted here in real-time. Review and copy the final text.</p>
                             <div id="draft-container" class="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[200px]">
                                 <p id="draftOutput" class="text-gray-700">Please select an audience to begin.</p>
+                                <div id="consentOutput" class="text-gray-700" hidden></div>
                             </div>
+                            <p id="cf-status" class="cf-sr-only" aria-live="polite"></p>
                         </div>
                         <div class="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center">
                              <div>
@@ -169,6 +200,8 @@
                         </div>
                         <div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500 italic">
                             <p><strong>A Note on This Tool:</strong> This drafter is a guide based on current best practices and is not a substitute for legal advice. As the researcher, you are ultimately accountable for the accuracy and integrity of your final statement.</p>
+                            <p id="gdpr-fineprint" class="mt-2" hidden>This covers GDPR-style consent. It does not cover US state privacy laws, HIPAA, or your institution's IRB rules.</p>
+                            <p class="mt-2">Your answers stay in this browser tab. Nothing you type is sent or saved.</p>
                         </div>
                     </div>
                 </div>
@@ -278,6 +311,7 @@
             currentQuestionIndex = 0;
             formContainer.innerHTML = initialFormHTML;
             formNav.style.display = 'none';
+            syncOutputMode();
             draftOutput.textContent = 'Please select an audience to begin.';
             copyBtn.disabled = true;
             document.querySelectorAll('.audience-btn').forEach(btn => {
@@ -293,6 +327,9 @@
                 state.academicTools = [];
                 state.academicStep = 'tools';
                 renderAcademicFlow();
+            } else if (audience === 'participant') {
+                // v2: Research Participants now offers two modes (quick paragraph or layered form).
+                renderParticipantModeChoice();
             } else {
                 questions = questionLibrary[audience];
                 currentQuestionIndex = 0;
@@ -380,7 +417,7 @@
             nextBtn.disabled = isLastStep;
 
             if (isFirstStep) {
-                prevBtn.textContent = 'Back to Audience';
+                prevBtn.textContent = state.audience === 'participant' ? 'Back' : 'Back to Audience';
             } else {
                 prevBtn.textContent = 'Previous';
             }
@@ -593,8 +630,18 @@
         function updateDraft() {
             let paragraphs = [];
             const { audience, interaction, analysis, training, optout, tools, academicTools, privacyStatement } = state;
+            syncOutputMode();
 
             if (audience === 'participant') {
+                if (state.pmode === 'layered') {
+                    updateConsentDraft();
+                    return;
+                }
+                if (state.pmode !== 'quick') {
+                    draftOutput.textContent = 'Choose a quick paragraph or a layered consent form to begin.';
+                    copyBtn.disabled = true;
+                    return;
+                }
                 let sentences = [];
                 const isInteractionSelected = interaction && Object.values(interaction).some(v => v);
                 const isAnalysisSelected = analysis && Object.values(analysis).some(v => v);
@@ -610,20 +657,28 @@
                     }
                 }
                 
+                // HOTFIX 2026-10-01 (F2): no-opt-out training is blocked, not drafted.
+                if (training === 'yes' && optout === 'no') {
+                    draftOutput.textContent = "Check before you use this: training AI models on participant data with no way to say no usually can't rest on consent. Under the GDPR, consent has to be optional and separate from taking part, and saying no can't cost the participant anything (including their incentive). Offer an opt-out, or talk to your legal or privacy team about your legal basis before drafting this disclosure.";
+                    copyBtn.disabled = true;
+                    return;
+                }
+
                 if (training === 'yes') {
-                    let trainingSentence = "Your anonymized data may also be used to train and improve our AI models.";
+                    // HOTFIX 2026-10-01 (F1): removed the "anonymized" assumption.
+                    let trainingSentence = "Data from your session may also be used to train our AI models [describe which models and what for].";
                     if (optout === 'yes') {
-                        trainingSentence += " You will be provided with a clear option to opt-out of this.";
-                    } else if (optout === 'no') {
-                        trainingSentence += " It is not feasible to opt-out of this use case.";
+                        trainingSentence += " This is optional: you can say no and still take part in the study, with no penalty.";
                     }
                     sentences.push(trainingSentence);
                 } else if (training === 'no') {
                     sentences.push("Your data will not be used for training AI models.");
                 }
 
+                // HOTFIX 2026-10-01 (F1): removed the old unconditional anonymization promise.
+                // Session recordings and transcripts are usually personal data, so the old sentence was often untrue.
                 if (isInteractionSelected || isAnalysisSelected || training) {
-                    sentences.push("Please be assured that all data is anonymized to protect your personal information.");
+                    sentences.push("We handle your personal information as described in [link to your privacy notice], and you can ask us how AI is used in this study at any time.");
                 }
                 
                 draftOutput.textContent = sentences.join(' ') || 'Please answer the questions to generate a draft.';
@@ -691,6 +746,730 @@
             }
         }
         
+        // =====================================================================
+        // v2 (2026-10): Layered consent form mode for Research Participants.
+        // Spec: ai-disclosure-tool_Brief_v1.md, sections 2-7. GDPR-reasoned.
+        // Runs entirely in the browser: no network calls, no storage.
+        // Optional boxes are always printed empty and the incentive line is fixed.
+        // =====================================================================
+        const consentOutput = document.getElementById('consentOutput');
+        const draftContainer = document.getElementById('draft-container');
+        const gdprFineprint = document.getElementById('gdpr-fineprint');
+        const cfStatus = document.getElementById('cf-status');
+        const CONSENT_STEPS = ['basics', 'tools', 'reuse', 'sensitive'];
+        const BOX = '☐'; // empty ballot box. There is deliberately no ticked variant anywhere in this file.
+        let vendorSeq = 0;
+        let consentCopy = { text: '', html: '', checklist: '' };
+        let lastStatus = '';
+
+        const MSG = {
+            trainDontKnow: 'Find out before you ship this form. A vendor that sets its own purposes may count as a controller (GDPR Art. 28(10)).',
+            erasure: 'If this person withdraws, you may not be able to remove them. Regulators can order erasure of the dataset or the model itself (EDPB Opinion 28/2024, para 114).',
+            special: 'Special category data (GDPR Art. 9) needs explicit consent and extra safeguards. Check with legal.',
+            legalBasis: 'Not sure which? Ask your legal or privacy team which legal basis you rely on.',
+            incentive: 'You get the full incentive whether or not you tick any optional box.',
+            usNote: "Recording: some US states (e.g. California) require every party's consent to record. Speaker identification can create voiceprints covered by biometric laws (e.g. Illinois BIPA). Check with legal.",
+            scope: "This covers GDPR-style consent. It does not cover US state privacy laws, HIPAA, or your institution's IRB rules.",
+            notLegal: 'Not legal advice. Take this form and this checklist to your legal or privacy team before you use it.'
+        };
+
+        // Vague-purpose lint (EDPB Guidelines 05/2020 fn 30). Checked in order; a match can cover later rules.
+        const VAGUE_RULES = [
+            { key: 'improve-systems', re: /\bimprov\w*\s+(?:our|the)\s+(?:systems?|services?|products?)\b/i, covers: ['improve', 'systems'],
+              tip: 'Say what changes and for whom. Instead of "to improve our systems," try "to train our support chatbot to answer billing questions."' },
+            { key: 'improve', re: /\b(?:improv\w*|enhanc\w*|optimi[sz]\w*)\b/i,
+              tip: 'Say what changes and for whom. Instead of "to improve the product," try "to decide which checkout steps to remove."' },
+            { key: 'systems', re: /\bour\s+(?:systems?|services?)\b/i,
+              tip: 'Name the system. Instead of "our systems," try "the search tool in our research library."' },
+            { key: 'future', re: /\bfuture\s+(?:research|studies|projects|uses?)\b/i,
+              tip: 'Name the use, or promise to ask again. Try "our checkout studies in 2027. We will ask you again before any other use."' },
+            { key: 'algorithms', re: /\balgorithms?\b/i,
+              tip: 'Name what the system does. Instead of "our algorithms," try "the model that suggests themes in our research notes."' },
+            { key: 'purposes', re: /\b(?:research|business|other|internal|AI)\s+purposes\b/i,
+              tip: 'Name the actual purpose. Try "to find the problems people hit when they pay online."' }
+        ];
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+        function anyOn(o) { return !!o && Object.keys(o).some(k => o[k]); }
+        function joinList(arr, word) {
+            const a = arr.filter(Boolean);
+            const w = word || 'and';
+            if (a.length < 2) return a[0] || '';
+            if (a.length === 2) return `${a[0]} ${w} ${a[1]}`;
+            return `${a.slice(0, -1).join(', ')}, ${w} ${a[a.length - 1]}`;
+        }
+        function trimEnd(s) { return String(s || '').trim().replace(/[.?!\s]+$/, ''); }
+        function endSentence(s) { return /[.?!]$/.test(s) ? s : `${s}.`; }
+        function isLayeredMode() { return state.audience === 'participant' && state.pmode === 'layered'; }
+
+        function lintText(s) {
+            const found = [];
+            const skip = new Set();
+            if (!s || !s.trim()) return found;
+            VAGUE_RULES.forEach(rule => {
+                if (skip.has(rule.key)) return;
+                const m = s.match(rule.re);
+                if (m) {
+                    found.push({ phrase: m[0], tip: rule.tip });
+                    (rule.covers || []).forEach(k => skip.add(k));
+                }
+            });
+            return found;
+        }
+        function lintMessage(found) {
+            return found.map(f => `"${f.phrase}" is too vague for a consent form. ${f.tip}`).join(' ');
+        }
+
+        function newVendor() {
+            vendorSeq += 1;
+            return { id: vendorSeq, name: '', does: {}, doesOther: '', trains: '', where: '', mode: 'inform' };
+        }
+        function newConsentState() {
+            return {
+                step: 0, studyName: '', org: '', about: '', contact: '', recorded: {}, retention: '', privacyLink: '',
+                vendors: [newVendor()], reuse: {}, reuseOther: '', deid: '', deleteOne: '', special: ''
+            };
+        }
+        function vendorStarted(v) {
+            return !!(v.name.trim() || anyOn(v.does) || v.trains || v.where || v.mode === 'ask');
+        }
+        function isErasureRisk(c) {
+            return anyOn(c.reuse) && c.deid === 'no' && (c.deleteOne === 'no' || c.deleteOne === 'dontknow');
+        }
+
+        // ---------- Left panel: inputs ----------
+        function textField(id, label, value, opts) {
+            const o = opts || {};
+            const hintId = o.hint ? `${id}-hint` : '';
+            return `
+                <div class="mb-5" ${o.showIf ? `data-show-if="${o.showIf}"` : ''}>
+                    <label for="${id}" class="font-semibold text-gray-700 block">${label}</label>
+                    <input type="text" id="${id}" ${o.attrs || ''} value="${esc(value)}" placeholder="${esc(o.placeholder || '')}" ${hintId ? `aria-describedby="${hintId}"` : ''} class="mt-1 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    ${o.hint ? `<p id="${hintId}" class="cf-hint">${o.hint}</p>` : ''}
+                    ${o.lint ? `<div class="cf-lint" data-lint-for="${id}" aria-live="polite"></div>` : ''}
+                </div>`;
+        }
+        function choiceGroup(g) {
+            // Every option gets the same style and size: no option is visually favoured.
+            const items = g.options.map(opt => {
+                const checked = g.type === 'radio' ? g.value === opt.value : !!(g.value && g.value[opt.value]);
+                const id = `${g.name}-${opt.value}`;
+                return `
+                    <label for="${id}" class="input-label flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${checked ? 'selected' : ''}">
+                        <input type="${g.type}" id="${id}" name="${g.name}" value="${opt.value}" ${g.attrs} class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" ${checked ? 'checked' : ''}>
+                        <span class="ml-3 text-gray-700">${opt.label}</span>
+                    </label>`;
+            }).join('');
+            return `
+                <fieldset class="mb-5" ${g.showIf ? `data-show-if="${g.showIf}"` : ''}>
+                    <legend class="font-semibold text-gray-700 mb-2">${g.legend}</legend>
+                    ${g.hint ? `<p class="cf-hint mb-2">${g.hint}</p>` : ''}
+                    <div class="${g.row ? 'cf-choice-row' : 'space-y-3'}">${items}</div>
+                    ${g.after || ''}
+                </fieldset>`;
+        }
+
+        function renderParticipantModeChoice() {
+            formNav.style.display = 'none';
+            formContainer.removeEventListener('input', handleFormChange);
+            formContainer.innerHTML = `
+                <h3 class="text-2xl font-semibold text-gray-900 mb-1" tabindex="-1" id="pmode-heading">What do you need?</h3>
+                <p class="text-gray-700 mb-6">Pick the kind of participant text to draft.</p>
+                <div class="space-y-3">
+                    <button type="button" data-pmode="quick" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                        <strong class="text-gray-800">Quick paragraph</strong>
+                        <p class="text-sm text-gray-600">One short AI paragraph to add to a consent form you already have.</p>
+                    </button>
+                    <button type="button" data-pmode="layered" class="audience-btn w-full text-left p-4 border rounded-lg hover:bg-gray-50">
+                        <strong class="text-gray-800">Layered consent form</strong>
+                        <p class="text-sm text-gray-600">A full consent section where each AI use gets its own choice. Includes a vendor table and a checklist for your legal team.</p>
+                    </button>
+                </div>
+                <div class="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center">
+                    <button type="button" id="pmode-back-btn" class="btn btn-secondary">Back to Audience</button>
+                </div>`;
+        }
+
+        function backToParticipantModes() {
+            formContainer.removeEventListener('input', handleFormChange);
+            state = { audience: 'participant', consent: state.consent };
+            questions = [];
+            currentQuestionIndex = 0;
+            renderParticipantModeChoice();
+            updateDraft();
+            const h = document.getElementById('pmode-heading');
+            if (h) h.focus();
+        }
+
+        function selectParticipantMode(mode) {
+            state.pmode = mode;
+            if (mode === 'quick') {
+                questions = questionLibrary.participant;
+                currentQuestionIndex = 0;
+                renderQuestions();
+                formNav.style.display = 'flex';
+            } else {
+                if (!state.consent) state.consent = newConsentState();
+                state.consent.step = 0;
+                renderConsentStep(true);
+            }
+            updateDraft();
+        }
+
+        function vendorRowHTML(v, index, total) {
+            const a = (f) => `data-vid="${v.id}" data-vf="${f}"`;
+            const base = `cf-v${v.id}`;
+            return `
+                <fieldset class="cf-vendor" data-vendor-row="${v.id}">
+                    <legend>Tool ${index + 1}</legend>
+                    ${textField(`${base}-name`, 'Tool name (and company, if different)', v.name, { attrs: a('name'), placeholder: 'e.g. Otter.ai' })}
+                    ${choiceGroup({ legend: 'What does it do?', type: 'checkbox', name: `${base}-does`, attrs: a('does'), value: v.does, row: true, options: [
+                        { value: 'transcription', label: 'Transcription' },
+                        { value: 'summary', label: 'Summaries' },
+                        { value: 'tagging', label: 'Tagging' },
+                        { value: 'synthesis', label: 'Synthesis (finding themes)' },
+                        { value: 'other', label: 'Other' }
+                    ]})}
+                    ${textField(`${base}-doesOther`, 'What else does it do?', v.doesOther, { attrs: a('doesOther'), placeholder: 'e.g. translate answers into English', hint: 'Start with a verb. It finishes the sentence "Can we use this tool to…"', lint: true, showIf: `vendorOther:${v.id}` })}
+                    ${choiceGroup({ legend: 'Does this vendor train on your data?', type: 'radio', name: `${base}-trains`, attrs: a('trains'), value: v.trains, row: true,
+                        hint: 'Check the vendor contract or settings, not just the marketing page.',
+                        options: [ { value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }, { value: 'dontknow', label: "Don't know" } ],
+                        after: `<div class="cf-alert-red mt-3" data-show-if="vendorDK:${v.id}"><strong>Export blocked.</strong> ${esc(MSG.trainDontKnow)}</div>`
+                    })}
+                    ${choiceGroup({ legend: 'Where is the data processed?', type: 'radio', name: `${base}-where`, attrs: a('where'), value: v.where, row: true,
+                        options: [ { value: 'eu', label: 'EU' }, { value: 'us', label: 'US' }, { value: 'other', label: 'Other' }, { value: 'dontknow', label: "Don't know" } ] })}
+                    ${choiceGroup({ legend: 'Inform or ask?', type: 'radio', name: `${base}-mode`, attrs: a('mode'), value: v.mode,
+                        hint: MSG.legalBasis,
+                        options: [
+                            { value: 'inform', label: 'Inform: tell participants in a notice (no checkbox)' },
+                            { value: 'ask', label: 'Ask: give participants a separate yes/no choice' }
+                        ] })}
+                    <button type="button" class="cf-remove-btn" data-remove-vendor="${v.id}" aria-label="Remove tool ${index + 1}">Remove this tool</button>
+                </fieldset>`;
+        }
+
+        function renderConsentStep(focusHeading) {
+            formNav.style.display = 'none';
+            const c = state.consent;
+            const total = CONSENT_STEPS.length;
+            const stepName = CONSENT_STEPS[c.step];
+            const ca = (f) => `data-cf="${f}"`;
+            let body = '';
+
+            if (stepName === 'basics') {
+                body = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2" tabindex="-1" id="cf-step-heading">Study basics</h3>
+                    <p class="text-gray-700 mb-6">This becomes Part 1 of the form: taking part and being recorded.</p>
+                    ${textField('cf-studyName', 'Study name', c.studyName, { attrs: ca('studyName'), placeholder: 'e.g. Grocery checkout interviews' })}
+                    ${textField('cf-org', 'Your organization', c.org, { attrs: ca('org'), placeholder: 'e.g. Acme Inc.' })}
+                    ${textField('cf-about', 'What the study is about', c.about, { attrs: ca('about'), placeholder: 'e.g. how people pay for groceries online', hint: 'Finish the sentence "This study is about…" in everyday words.', lint: true })}
+                    ${textField('cf-contact', 'Contact for questions and withdrawal', c.contact, { attrs: ca('contact'), placeholder: 'e.g. research@acme.com' })}
+                    ${choiceGroup({ legend: 'What gets recorded?', type: 'checkbox', name: 'cf-recorded', attrs: ca('recorded'), value: c.recorded, row: true, options: [
+                        { value: 'audio', label: 'Audio' }, { value: 'video', label: 'Video' }, { value: 'screen', label: 'Screen' }, { value: 'notes', label: 'Notes' }
+                    ]})}
+                    ${textField('cf-retention', 'How long you keep the data', c.retention, { attrs: ca('retention'), placeholder: 'e.g. 12 months' })}
+                    ${textField('cf-privacyLink', 'Link to your privacy notice (optional)', c.privacyLink, { attrs: ca('privacyLink'), placeholder: 'e.g. acme.com/privacy' })}`;
+            } else if (stepName === 'tools') {
+                body = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2" tabindex="-1" id="cf-step-heading">Third-party AI tools</h3>
+                    <p class="text-gray-700 mb-6">This becomes Part 2 of the form. Add each outside AI tool that touches session data, like a transcription or synthesis tool. Leave the row blank if you don't use any.</p>
+                    ${c.vendors.map((v, i) => vendorRowHTML(v, i, c.vendors.length)).join('')}
+                    <button type="button" id="cf-add-vendor" class="btn w-full mt-2">Add another tool</button>`;
+            } else if (stepName === 'reuse') {
+                body = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2" tabindex="-1" id="cf-step-heading">Internal AI reuse</h3>
+                    <p class="text-gray-700 mb-6">This becomes Part 3 of the form. Will your team put session data into its own AI systems? Each one you tick becomes a separate yes/no choice for the participant. Leave them all unticked if not.</p>
+                    ${choiceGroup({ legend: 'Internal uses', type: 'checkbox', name: 'cf-reuse', attrs: ca('reuse'), value: c.reuse, options: [
+                        { value: 'repository', label: 'Research repository with AI search or RAG' },
+                        { value: 'personas', label: 'Synthetic personas or digital twins' },
+                        { value: 'finetune', label: 'Fine-tuning or training an internal model' },
+                        { value: 'other', label: 'Other' }
+                    ]})}
+                    ${textField('cf-reuseOther', 'Describe the other use', c.reuseOther, { attrs: ca('reuseOther'), placeholder: 'e.g. test our new tagging model on real transcripts', hint: 'It finishes the sentence "Can we use your session to…"', lint: true, showIf: 'reuseOther' })}
+                    <div data-show-if="reuseAny">
+                        ${choiceGroup({ legend: 'Is data de-identified before it goes in?', type: 'radio', name: 'cf-deid', attrs: ca('deid'), value: c.deid, row: true,
+                            options: [ { value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }, { value: 'partly', label: 'Partly' } ] })}
+                        ${choiceGroup({ legend: "Can you delete one person's data from this system?", type: 'radio', name: 'cf-deleteOne', attrs: ca('deleteOne'), value: c.deleteOne, row: true,
+                            options: [ { value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }, { value: 'dontknow', label: "Don't know" } ] })}
+                        <div class="cf-alert-red" data-show-if="redWarn"><strong>Warning.</strong> ${esc(MSG.erasure)}</div>
+                    </div>`;
+            } else {
+                body = `
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2" tabindex="-1" id="cf-step-heading">Sensitive topics</h3>
+                    <p class="text-gray-700 mb-6">Some kinds of data need extra care.</p>
+                    ${choiceGroup({ legend: 'Could the study collect health, ethnicity, religion, sexuality, political views, union membership, genetic, or biometric data (including voiceprints)?', type: 'radio', name: 'cf-special', attrs: ca('special'), value: c.special, row: true,
+                        options: [ { value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' } ],
+                        after: `<div class="cf-alert-amber mt-3" data-show-if="special">${esc(MSG.special)}</div>` })}
+                    <p class="text-gray-700">That's everything. Review the draft, then take it and the checklist to your legal or privacy team.</p>`;
+            }
+
+            formContainer.innerHTML = `
+                <p class="text-sm font-medium text-gray-500 mb-2">Layered consent form</p>
+                ${body}
+                <div class="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center">
+                    <button type="button" id="cf-back" class="btn btn-secondary">${c.step === 0 ? 'Back' : 'Previous'}</button>
+                    <span class="text-sm font-medium text-gray-500">Step ${c.step + 1} of ${total}</span>
+                    <button type="button" id="cf-next" class="btn" ${c.step === total - 1 ? 'disabled title="You\'re at the last step."' : ''}>Next</button>
+                </div>`;
+            syncConsentUI();
+            if (focusHeading) {
+                const h = document.getElementById('cf-step-heading');
+                if (h) h.focus();
+            }
+        }
+
+        function syncConsentUI() {
+            const c = state.consent;
+            if (!c) return;
+            const vendorById = (id) => c.vendors.find(v => v.id === Number(id));
+            const conditions = {
+                reuseAny: () => anyOn(c.reuse),
+                reuseOther: () => !!c.reuse.other,
+                redWarn: () => isErasureRisk(c),
+                special: () => c.special === 'yes',
+                vendorOther: (id) => { const v = vendorById(id); return !!(v && v.does.other); },
+                vendorDK: (id) => { const v = vendorById(id); return !!(v && v.trains === 'dontknow'); }
+            };
+            formContainer.querySelectorAll('.input-label').forEach(label => {
+                const input = label.querySelector('input');
+                if (input) label.classList.toggle('selected', input.checked);
+            });
+            formContainer.querySelectorAll('[data-show-if]').forEach(el => {
+                const [key, arg] = el.dataset.showIf.split(':');
+                el.hidden = conditions[key] ? !conditions[key](arg) : false;
+            });
+            formContainer.querySelectorAll('[data-lint-for]').forEach(el => {
+                const input = document.getElementById(el.dataset.lintFor);
+                const msg = input ? lintMessage(lintText(input.value)) : '';
+                if (el.textContent !== msg) el.textContent = msg;
+            });
+        }
+
+        function handleConsentInput(e) {
+            if (!isLayeredMode() || !state.consent) return;
+            const t = e.target;
+            const c = state.consent;
+            let target = null;
+            let field = null;
+            if (t.dataset.cf) {
+                target = c;
+                field = t.dataset.cf;
+            } else if (t.dataset.vid) {
+                target = c.vendors.find(v => v.id === Number(t.dataset.vid));
+                field = t.dataset.vf;
+            }
+            if (!target || !field) return;
+            if (t.type === 'checkbox') {
+                target[field] = Object.assign({}, target[field], { [t.value]: t.checked });
+            } else if (t.type === 'radio') {
+                if (t.checked) target[field] = t.value;
+            } else {
+                target[field] = t.value;
+            }
+            syncConsentUI();
+            updateDraft();
+        }
+
+        // ---------- Right panel: outputs ----------
+        const JOB_VERB = {
+            transcription: 'make a transcript of your session',
+            summary: 'summarize your session',
+            tagging: 'tag topics in your session',
+            synthesis: 'find themes across sessions, including yours'
+        };
+        const JOB_NOUN = { transcription: 'transcription', summary: 'summaries', tagging: 'tagging topics', synthesis: 'finding themes' };
+        const WHERE_LABEL = { eu: 'EU', us: 'United States', other: '[Name the country]', dontknow: '[Confirm before sending]', '': '[Confirm before sending]' };
+        const TRAINS_LABEL = { yes: 'Yes', no: 'No', dontknow: '[Confirm before sending]', '': '[Confirm before sending]' };
+        const REUSE_PLACE = { repository: 'our research library', personas: 'our synthetic personas', finetune: 'our trained AI model', other: 'the other system in Part 3' };
+        const LEVEL_LABEL = { block: 'Blocker', red: 'Warning', amber: 'Check', info: 'Note' };
+
+        function vendorJobsVerb(v) {
+            const a = Object.keys(JOB_VERB).filter(k => v.does[k]).map(k => JOB_VERB[k]);
+            if (v.does.other) a.push(trimEnd(v.doesOther) || '[say what else it does]');
+            return a.length ? joinList(a) : '[say what it does]';
+        }
+        function vendorJobsNoun(v) {
+            const a = Object.keys(JOB_NOUN).filter(k => v.does[k]).map(k => JOB_NOUN[k]);
+            if (v.does.other) a.push(trimEnd(v.doesOther) || '[say what else it does]');
+            const out = a.length ? a.join(', ') : '[say what it does]';
+            return out.charAt(0) === '[' ? `[${out.charAt(1).toUpperCase()}${out.slice(2)}` : out.charAt(0).toUpperCase() + out.slice(1);
+        }
+
+        function syllableCount(word) {
+            let w = word.toLowerCase().replace(/[^a-z]/g, '');
+            if (!w) return 0;
+            if (w.length <= 3) return 1;
+            w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '');
+            const m = w.match(/[aeiouy]{1,2}/g);
+            return m ? m.length : 1;
+        }
+        function readingGrade(text) {
+            const clean = text.replace(/\[[^\]]*\]/g, 'it').replace(/☐/g, '');
+            const sentences = clean.split(/[.!?:]+(?=\s|$)/).filter(s => /[a-z]/i.test(s));
+            const words = clean.match(/[A-Za-z][A-Za-z'-]*/g) || [];
+            if (!words.length || !sentences.length) return 0;
+            const syl = words.reduce((n, w) => n + syllableCount(w), 0);
+            const grade = 0.39 * (words.length / sentences.length) + 11.8 * (syl / words.length) - 15.59;
+            return Math.max(0, Math.round(grade * 10) / 10);
+        }
+
+        function buildConsent() {
+            const c = state.consent;
+            const vendors = c.vendors
+                .map((v, i) => Object.assign({}, v, { label: v.name.trim() || `[Tool ${i + 1}]` }))
+                .filter(vendorStarted);
+            const askV = vendors.filter(v => v.mode === 'ask');
+            const informV = vendors.filter(v => v.mode !== 'ask');
+            const trainers = vendors.filter(v => v.trains === 'yes');
+            const reuseKeys = ['repository', 'personas', 'finetune', 'other'].filter(k => c.reuse[k]);
+            const reuseAny = reuseKeys.length > 0;
+            const org = c.org.trim() || '[your organization]';
+            const study = c.studyName.trim() || '[study name]';
+            const contact = c.contact.trim() || '[contact email]';
+            const rec = c.recorded || {};
+            const media = rec.audio || rec.video || rec.screen;
+
+            const blockers = [];
+            const checklist = [];
+            const add = (level, text) => checklist.push({ level, text });
+            const prose = []; // participant-facing sentences, for the reading-level check
+            const P = (text) => { prose.push(text); return { t: 'p', text }; };
+
+            // Guardrail: unknown training blocks export.
+            vendors.forEach(v => {
+                if (v.trains === 'dontknow') {
+                    blockers.push(`You don't know whether ${v.label} trains on your data. ${MSG.trainDontKnow}`);
+                } else if (!v.trains) {
+                    blockers.push(`Answer "Does this vendor train on your data?" for ${v.label}. You need to know before you ship this form.`);
+                }
+            });
+            const erasureRisk = isErasureRisk(c);
+
+            // ---- Part 1: taking part (required)
+            const p1 = [];
+            const mediaBits = [];
+            if (rec.audio && rec.video) mediaBits.push('audio and video of the session');
+            else if (rec.audio) mediaBits.push('audio of the session');
+            else if (rec.video) mediaBits.push('video of the session');
+            if (rec.screen) mediaBits.push('your screen');
+            let recordSentence;
+            if (mediaBits.length) recordSentence = `We will record ${joinList(mediaBits)}${rec.notes ? ' and take notes' : ''}.`;
+            else if (rec.notes) recordSentence = 'We will take notes. We will not record the session.';
+            else recordSentence = 'We will record [what you record].';
+            const reviewed = joinList([media ? 'recordings' : '', rec.notes ? 'notes' : '']) || '[recordings]';
+            p1.push({ t: 'h', text: 'Part 1: Taking part (required)' });
+            p1.push(P(`${endSentence(`${study} is run by ${org}`)} This study is about ${trimEnd(c.about) || '[what the study is about]'}.`));
+            p1.push(P(`Taking part means joining a session with a researcher. ${recordSentence} People on our research team review the ${reviewed} to learn from them.`));
+            p1.push(P(`${c.special === 'yes' ? 'Some questions may touch on personal topics, such as [name the topic, e.g. your health]. ' : ''}You can skip any question or stop at any time.`));
+            p1.push(P(`We keep your data for ${c.retention.trim() || '[how long]'}, then delete it. To learn how we handle your personal data and what your rights are, see ${c.privacyLink.trim() || '[link to your privacy notice]'}.`));
+            const p1Box = media ? 'I agree to take part in this study and to be recorded as described above.' : 'I agree to take part in this study as described above.';
+            prose.push(p1Box);
+            p1.push({ t: 'box', text: p1Box });
+
+            // ---- What the AI does with your words
+            const ai = [{ t: 'h', text: 'What the AI does with your words' }];
+            if (!vendors.length && !reuseAny) {
+                ai.push(P("We don't plan to use AI tools on your session."));
+            } else {
+                const what = [];
+                if (rec.audio && rec.video) what.push('the audio and video recording');
+                else if (rec.audio) what.push('the audio recording');
+                else if (rec.video) what.push('the video recording');
+                if (rec.screen) what.push('the screen recording');
+                if (vendors.some(v => v.does.transcription)) what.push('a transcript');
+                if (rec.notes) what.push('our notes');
+                const hearsYou = rec.audio || rec.video || vendors.some(v => v.does.transcription);
+                const s = [];
+                s.push(`The AI tools get ${what.length ? joinList(what) : '[what you record]'} from your session${hearsYou ? ', including what you say' : ''}.`);
+                if (trainers.length) {
+                    const pl = trainers.length > 1;
+                    s.push(`${joinList(trainers.map(v => v.label))} may also use it to train ${pl ? 'their' : 'its'} own AI, which can keep patterns from what you said.`);
+                } else if (vendors.length) {
+                    s.push(`The tools in Part 2 don't train their own AI on it.`);
+                }
+                if (c.reuse.finetune) s.push('If you say yes to training our own AI model in Part 3, that model can keep patterns from what you said, even after we delete the recording.');
+                const makesOutputs = vendors.some(v => v.does.summary || v.does.tagging || v.does.synthesis || v.does.other) || reuseAny;
+                if (makesOutputs) s.push('What the AI makes, like summaries or themes, can include your quotes and details about you, and our team will see it.');
+                else if (vendors.some(v => v.does.transcription)) s.push('A transcript is a word-for-word copy of what you said, and our team will read it.');
+                if (c.reuse.repository) s.push('If you say yes to the research library, staff may see your quotes in later searches too.');
+                ai.push(P(s.join(' ')));
+            }
+
+            // ---- Part 2: third-party AI tools (Inform = notice + table; Ask = yes/no per tool)
+            const p2 = [];
+            let vendorTable = null;
+            if (vendors.length) {
+                p2.push({ t: 'h', text: 'Part 2: AI tools we use' });
+                const notice = [];
+                if (informV.length && askV.length) notice.push(`We use the AI tools in the table below to help with this study. We only use ${joinList(askV.map(v => v.label))} if you say yes below.`);
+                else if (askV.length) notice.push("We'd like to use the AI tools in the table below. We only use each one if you say yes below.");
+                else notice.push('We use the AI tools in the table below to help with this study.');
+                if (trainers.length) {
+                    const pl = trainers.length > 1;
+                    notice.push(`${joinList(trainers.map(v => v.label))} also ${pl ? 'use' : 'uses'} the data to train ${pl ? 'their' : 'its'} own AI.`);
+                }
+                if (vendors.some(v => v.where === 'us' || v.where === 'other')) notice.push('Some of these tools handle your data outside the EU.');
+                p2.push(P(notice.join(' ')));
+                vendorTable = {
+                    t: 'table', caption: 'AI tools that get data from your session',
+                    head: ['Tool', 'What it does', 'Trains on your data?', 'Where your data is processed'],
+                    rows: vendors.map(v => [v.label, vendorJobsNoun(v), TRAINS_LABEL[v.trains] || TRAINS_LABEL[''], WHERE_LABEL[v.where] || WHERE_LABEL['']])
+                };
+                p2.push({ t: 'sec', key: 'vendor-table', blocks: [vendorTable] });
+                askV.forEach(v => {
+                    p2.push(P(`Can we use ${v.label} to ${vendorJobsVerb(v)}?${v.trains === 'yes' ? ` ${v.label} also trains its own AI on the data.` : ''}`));
+                    p2.push({ t: 'yn' });
+                });
+            }
+
+            // ---- Part 3: internal AI reuse (always optional, always unticked)
+            const p3 = [];
+            if (reuseAny) {
+                p3.push({ t: 'h', text: 'Part 3: Extra uses (optional)' });
+                const intro = ["We'd also like to use your session in our own AI systems. Each one is your choice, and saying no won't change anything else."];
+                if (c.deid === 'yes') intro.push('Before any of this, we remove your name and other details that point to you.');
+                else if (c.deid === 'partly') intro.push('Before any of this, we remove your name, but some details could still point to you.');
+                else if (c.deid === 'no') intro.push('We do not remove your name or other details first.');
+                p3.push(P(intro.join(' ')));
+                const items = {
+                    repository: 'Can we keep your session in our research library? Our staff use AI search to find things in it, and it may show them your quotes.',
+                    personas: 'Can we use your session to help make synthetic personas? These are made-up example people that AI builds from many sessions. They may repeat things you said.',
+                    finetune: 'Can we use your session to train our own AI model, [name the model and what it does]? The model may keep patterns from what you said.',
+                    other: `Can we use your session to ${trimEnd(c.reuseOther) || '[describe the use]'}?`
+                };
+                reuseKeys.forEach(k => { p3.push(P(items[k])); p3.push({ t: 'yn' }); });
+            }
+
+            // ---- Incentive (fixed text, never conditional)
+            const inc = [{ t: 'h', text: 'Your incentive' }, P(MSG.incentive)];
+
+            // ---- Withdrawal
+            const hasChoices = askV.length > 0 || reuseAny;
+            const w = [];
+            w.push('You can change your mind at any time, before, during, or after the session.');
+            w.push(`It's as easy to withdraw as to give your consent: email ${contact} or tell the researcher.`);
+            w.push("You don't need to give a reason, and you still get your incentive.");
+            if (hasChoices) w.push(`You can also take back just one of your choices${askV.length && reuseAny ? ' in Part 2 or Part 3' : askV.length ? ' in Part 2' : ' in Part 3'} and stay in the study.`);
+            w.push(`When you withdraw, we stop using your data and delete it${vendors.length ? ', including copies in the AI tools listed above,' : ''} within [number] days.`);
+            if (reuseAny) {
+                const places = reuseKeys.map(k => REUSE_PLACE[k]);
+                if (c.deleteOne === 'yes') w.push(`That includes removing it from ${joinList(places)}.`);
+                else w.push(`If you said yes in Part 3, we may not be able to remove your data from ${joinList(places, 'or')} once it is in.`);
+            }
+            if (trainers.length) {
+                const pl = trainers.length > 1;
+                w.push(`${joinList(trainers.map(v => v.label))} may not be able to remove data ${pl ? 'they' : 'it'} already used to train ${pl ? 'their' : 'its'} AI.`);
+            }
+            w.push("This doesn't undo what we did with your data before you told us.");
+            const wd = [{ t: 'h', text: 'Changing your mind' }, P(w.join(' '))];
+
+            const doc = [
+                { t: 'title', text: `${study}: consent form` },
+                { t: 'sec', key: 'layer1', blocks: p1 },
+                { t: 'sec', key: 'ai-block', blocks: ai }
+            ];
+            if (p2.length) doc.push({ t: 'sec', key: 'layer2', blocks: p2 });
+            if (p3.length) doc.push({ t: 'sec', key: 'layer3', blocks: p3 });
+            doc.push({ t: 'sec', key: 'incentive', blocks: inc });
+            doc.push({ t: 'sec', key: 'withdrawal', blocks: wd });
+
+            // ---- Researcher checklist (citations live here only)
+            blockers.forEach(b => add('block', b));
+            if (erasureRisk) add('red', `Part 3: data isn't de-identified and you can't (or don't know if you can) delete one person. ${MSG.erasure}`);
+            if (c.special === 'yes') add('amber', MSG.special);
+            trainers.forEach(v => add('amber', `${v.label} trains its own AI on your data. That is a separate purpose. A vendor that sets its own purposes may count as a controller (GDPR Art. 28(10)). Turn training off if you can${v.mode !== 'ask' ? ', or switch this tool to "Ask"' : ''}.`));
+            vendors.forEach(v => {
+                if (v.where === 'us' || v.where === 'other') add('amber', `${v.label} processes data outside the EU. Check your contract covers international transfers (GDPR Chapter V).`);
+                else if (v.where === 'dontknow' || !v.where) add('amber', `Find out where ${v.label} processes data. If it's outside the EU, check your contract covers international transfers (GDPR Chapter V).`);
+            });
+            const lintFields = [['What the study is about', c.about]];
+            vendors.forEach(v => { if (v.does.other) lintFields.push([`${v.label}: what else it does`, v.doesOther]); });
+            if (c.reuse.other) lintFields.push(['Part 3: other use', c.reuseOther]);
+            lintFields.forEach(([label, val]) => {
+                const found = lintText(val);
+                if (found.length) add('amber', `Vague purpose in "${label}". ${lintMessage(found)} (EDPB Guidelines 05/2020, fn 30.)`);
+            });
+            if (reuseAny && !c.deid) add('amber', 'Part 3: answer "Is data de-identified before it goes in?"');
+            if (reuseAny && !c.deleteOne) add('amber', `Part 3: answer "Can you delete one person's data from this system?"`);
+            if (reuseAny && c.deid === 'partly') add('amber', 'Part 3: data is only partly de-identified, so it is still personal data. Treat it that way.');
+            if (!vendors.length && !reuseAny) add('amber', "You haven't listed any AI tools or internal AI uses. If you use none, you may only need Part 1.");
+            const plain = renderText(doc);
+            if (/\[[^\]]+\]/.test(plain)) add('amber', 'Fill in every [bracketed] placeholder before you send this form.');
+            const grade = readingGrade(prose.join(' '));
+            if (grade > 9) add('amber', `Reading level is about grade ${grade}. Aim for grade 8 or lower: shorter sentences and everyday words.`);
+
+            add('info', MSG.notLegal);
+            add('info', 'Each optional use has its own yes/no choice, because when consent is your legal basis, separate purposes need separate consent (GDPR Recitals 32 and 43; EDPB Guidelines 05/2020, paras 42–44).');
+            if (informV.length) add('info', `Tools set to "Inform" (${joinList(informV.map(v => v.label))}) need a legal basis other than consent, and usually a processor contract (GDPR Art. 28). ${MSG.legalBasis}`);
+            if (vendors.length) add('info', 'The vendor table names who gets the data (GDPR Art. 13(1)(e)). Keep it up to date.');
+            if (c.reuse.finetune) add('info', 'Models trained on personal data are not anonymous in all cases (EDPB Opinion 28/2024, para 34).');
+            add('info', 'The incentive line is fixed on purpose. Never tie the incentive to an optional choice (GDPR Art. 7(4); EDPB Guidelines 05/2020, paras 46–47).');
+            add('info', 'Never pre-tick a box. Treat a blank yes/no answer as No.');
+            add('info', 'Set up how you will act on a withdrawal: find and delete one person\'s data in every tool and system listed, within the days you promise. Withdrawing must be as easy as giving consent, and past use stays lawful (GDPR Art. 7(3)).');
+            if (grade <= 9) add('info', `Reading level is about grade ${grade}. Aim for grade 8 or lower.`);
+            add('info', MSG.usNote);
+            add('info', MSG.scope);
+
+            return { doc, plain, blockers, erasureRisk, checklist, grade, special: c.special === 'yes' };
+        }
+
+        function fmtInline(text, forCopy) {
+            const e = esc(text);
+            return forCopy ? e : e.replace(/\[[^\]]+\]/g, m => `<mark class="cf-ph">${m}</mark>`);
+        }
+        function renderHTML(blocks, forCopy) {
+            return blocks.map(b => {
+                switch (b.t) {
+                    case 'title': return forCopy ? `<h2>${esc(b.text)}</h2>` : `<h4 class="cf-title">${fmtInline(b.text)}</h4>`;
+                    case 'h': return forCopy ? `<h3>${esc(b.text)}</h3>` : `<h4>${fmtInline(b.text)}</h4>`;
+                    case 'p': return `<p>${fmtInline(b.text, forCopy)}</p>`;
+                    case 'box': return `<p class="cf-box">${BOX} ${fmtInline(b.text, forCopy)}</p>`;
+                    case 'yn': return forCopy ? `<p>${BOX} Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${BOX} No</p>` : `<p class="cf-boxes"><span>${BOX} Yes</span><span>${BOX} No</span></p>`;
+                    case 'table': {
+                        const head = `<tr>${b.head.map(h => `<th scope="col"${forCopy ? ' style="text-align:left"' : ''}>${esc(h)}</th>`).join('')}</tr>`;
+                        const rows = b.rows.map(r => `<tr>${r.map(cell => `<td>${fmtInline(cell, forCopy)}</td>`).join('')}</tr>`).join('');
+                        if (forCopy) return `<table border="1" cellpadding="6" style="border-collapse:collapse"><caption style="text-align:left">${esc(b.caption)}</caption><thead>${head}</thead><tbody>${rows}</tbody></table>`;
+                        return `<div class="cf-table-wrap"><table><caption>${esc(b.caption)}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
+                    }
+                    case 'sec': return forCopy ? renderHTML(b.blocks, true) : `<section data-output="${b.key}">${renderHTML(b.blocks, false)}</section>`;
+                    default: return '';
+                }
+            }).join('');
+        }
+        function renderText(blocks) {
+            return blocks.map(b => {
+                switch (b.t) {
+                    case 'title': case 'h': case 'p': return b.text;
+                    case 'box': return `${BOX} ${b.text}`;
+                    case 'yn': return `${BOX} Yes      ${BOX} No`;
+                    case 'table': return [b.caption, b.head.join(' | '), ...b.rows.map(r => r.join(' | '))].join('\n');
+                    case 'sec': return renderText(b.blocks);
+                    default: return '';
+                }
+            }).filter(Boolean).join('\n\n');
+        }
+
+        function updateConsentDraft() {
+            const out = buildConsent();
+            const blocked = out.blockers.length > 0;
+            const checklistText = ['Researcher checklist (not for participants)', ...out.checklist.map(i => `- [${LEVEL_LABEL[i.level]}] ${i.text}`)].join('\n');
+            consentCopy = blocked ? { text: '', html: '', checklist: checklistText } : { text: out.plain, html: renderHTML(out.doc, true), checklist: checklistText };
+
+            const alerts = [];
+            if (blocked) {
+                alerts.push(`<div class="cf-alert-red mb-4" data-output="blocked"><strong>Export blocked.</strong> ${out.blockers.map(esc).join(' ')} Copy is turned off until you fix this.</div>`);
+            }
+            if (out.erasureRisk) alerts.push(`<div class="cf-alert-red mb-4" data-output="red-warning"><strong>Warning.</strong> ${esc(MSG.erasure)}</div>`);
+            if (out.special) alerts.push(`<div class="cf-alert-amber mb-4" data-output="special-prompt">${esc(MSG.special)}</div>`);
+
+            const formSection = blocked ? '' : `
+                <section aria-labelledby="cf-form-label">
+                    <p id="cf-form-label" class="cf-out-label">For participants: consent form</p>
+                    <div class="cf-doc" data-output="form">${renderHTML(out.doc, false)}</div>
+                </section>`;
+            const checklistItems = out.checklist.map(i => `<li data-level="${i.level}"><span class="cf-level cf-level-${i.level}">${LEVEL_LABEL[i.level]}</span>${esc(i.text)}</li>`).join('');
+
+            consentOutput.innerHTML = `
+                <p class="mb-3"><span class="cf-badge">Draft: not legal advice</span></p>
+                ${alerts.join('')}
+                ${formSection}
+                <section class="cf-checklist" data-output="checklist" aria-labelledby="cf-check-label">
+                    <p id="cf-check-label" class="cf-out-label">For you, not the participant: researcher checklist</p>
+                    <ul>${checklistItems}</ul>
+                    <div class="mt-4 flex items-center">
+                        <button type="button" id="cf-copy-checklist" class="btn btn-secondary">Copy checklist</button>
+                        <span id="cf-checklist-feedback" class="ml-4 text-sm font-medium text-green-600 opacity-0 transition-opacity">Copied!</span>
+                    </div>
+                </section>`;
+            copyBtn.disabled = blocked;
+
+            const status = blocked ? 'Export blocked. Copy is turned off. See the message at the top of the draft.'
+                : out.erasureRisk ? 'Warning added to the draft: you may not be able to remove a person who withdraws.' : '';
+            if (status !== lastStatus) { cfStatus.textContent = status; lastStatus = status; }
+        }
+
+        function syncOutputMode() {
+            const layered = isLayeredMode();
+            consentOutput.hidden = !layered;
+            draftOutput.hidden = layered;
+            draftContainer.classList.toggle('cf-scroll', layered);
+            copyBtn.textContent = layered ? 'Copy form' : 'Copy Text';
+            gdprFineprint.hidden = state.audience !== 'participant';
+            if (!layered) { consentOutput.innerHTML = ''; consentCopy = { text: '', html: '', checklist: '' }; if (lastStatus) { cfStatus.textContent = ''; lastStatus = ''; } }
+        }
+
+        function copyRich(text, html) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const onCopy = (e) => {
+                if (!e.clipboardData) return;
+                e.clipboardData.setData('text/plain', text);
+                if (html) e.clipboardData.setData('text/html', html);
+                e.preventDefault();
+            };
+            document.addEventListener('copy', onCopy);
+            try { document.execCommand('copy'); } finally {
+                document.removeEventListener('copy', onCopy);
+                document.body.removeChild(ta);
+            }
+        }
+
+        formContainer.addEventListener('input', handleConsentInput);
+        formContainer.addEventListener('change', handleConsentInput);
+
+        formContainer.addEventListener('click', (e) => {
+            if (state.audience !== 'participant') return;
+            const modeBtn = e.target.closest('[data-pmode]');
+            if (modeBtn) { selectParticipantMode(modeBtn.dataset.pmode); return; }
+            if (e.target.closest('#pmode-back-btn')) { resetAll(); return; }
+            if (!isLayeredMode()) return;
+            const c = state.consent;
+            if (e.target.closest('#cf-next')) {
+                if (c.step < CONSENT_STEPS.length - 1) { c.step += 1; renderConsentStep(true); }
+                return;
+            }
+            if (e.target.closest('#cf-back')) {
+                if (c.step === 0) { backToParticipantModes(); }
+                else { c.step -= 1; renderConsentStep(true); }
+                return;
+            }
+            if (e.target.closest('#cf-add-vendor')) {
+                const v = newVendor();
+                c.vendors.push(v);
+                renderConsentStep(false);
+                updateDraft();
+                const input = document.getElementById(`cf-v${v.id}-name`);
+                if (input) input.focus();
+                return;
+            }
+            const rm = e.target.closest('[data-remove-vendor]');
+            if (rm) {
+                c.vendors = c.vendors.filter(v => v.id !== Number(rm.dataset.removeVendor));
+                renderConsentStep(false);
+                updateDraft();
+                const addBtn = document.getElementById('cf-add-vendor');
+                if (addBtn) addBtn.focus();
+            }
+        });
+
+        consentOutput.addEventListener('click', (e) => {
+            if (!e.target.closest('#cf-copy-checklist')) return;
+            copyRich(consentCopy.checklist, null);
+            const fb = document.getElementById('cf-checklist-feedback');
+            if (fb) {
+                fb.classList.remove('opacity-0');
+                setTimeout(() => fb.classList.add('opacity-0'), 2000);
+            }
+        });
+
         // --- Main Event Listeners ---
         
         formContainer.addEventListener('click', (e) => {
@@ -779,13 +1558,13 @@
         });
         
         copyBtn.addEventListener('click', () => {
-            const textToCopy = draftOutput.textContent;
-            const tempTextarea = document.createElement('textarea');
-            tempTextarea.value = textToCopy;
-            document.body.appendChild(tempTextarea);
-            tempTextarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextarea);
+            if (copyBtn.disabled) return;
+            if (isLayeredMode()) {
+                // v2: the layered form copies as rich text (keeps the vendor table) plus a plain-text fallback.
+                copyRich(consentCopy.text, consentCopy.html);
+            } else {
+                copyRich(draftOutput.textContent, null);
+            }
 
             copyFeedback.classList.remove('opacity-0');
             setTimeout(() => {
@@ -800,7 +1579,8 @@
             const visibleIndex = currentQuestionObject ? visibleQuestions.findIndex(q => q.id === currentQuestionObject.id) : -1;
             
             if (visibleIndex === 0) {
-                resetAll();
+                if (state.audience === 'participant') backToParticipantModes();
+                else resetAll();
             } else {
                 navigateQuestions(-1);
             }
